@@ -19,7 +19,7 @@ horizontal orientation, right or left hand view, finger or note display, etc.
 Frets is intended as a toolkit or dependency to be incorporated into graphical
 and other musical programs
 
-===
+==========
 
 Contributors
 dan@danbecker.info   
