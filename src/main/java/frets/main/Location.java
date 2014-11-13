@@ -184,7 +184,8 @@ public class Location implements Comparable<Location> {
 			       Note stringNote = Note.parse( stringString );
 			       while ( stringi < fretboard.getStringCount() ) {
 			    	   if ( stringNote.equals( fretboard.get( stringi ).getOpenNote() ))
-			    	      break;			    	   
+			    	      break;	
+			    	   stringi++;
 			       }
 			       if ( stringi == fretboard.getStringCount() ) {
 			    	   throw new IllegalArgumentException( "Could not match string=" + stringString + " of " + fromString + " to an open string." );

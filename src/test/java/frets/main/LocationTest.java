@@ -128,16 +128,23 @@ public class LocationTest
 
     @Test
     public void testStringFret() {
-        // Test location reverting to String-Fret string.
         Location lowA = new Location( 0, 5 );
-        assertEquals( "Guitar Low A", "E2-5", lowA.toStringFret( standard ));
         Location highA = new Location( 5, 5 );
+
+        // Test location reverting to String-Fret string.
+        assertEquals( "Guitar Low A", "E2-5", lowA.toStringFret( standard ));
         assertEquals( "Guitar High A", "E4-5", highA.toStringFret( standard ));
 
         // test parsing of string name, fret to note    
         assertEquals( "Guitar Low A parse", lowA, Location.parseStringFret("E2-5", standard));
         assertEquals( "Guitar High A parse", highA, Location.parseStringFret("E4-5", standard));
-}
 
-
+        // Try non-existent string
+        try { 
+        	Location.parseStringFret( "E3-5", standard );
+     		assertFalse( "Exception not thrown", true );
+         } catch ( Throwable e ) {
+         	assertEquals( "IllegalArgumentException",  IllegalArgumentException.class, e.getClass() );
+         }
+    }
 }
