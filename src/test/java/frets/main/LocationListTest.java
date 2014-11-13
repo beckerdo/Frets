@@ -548,9 +548,9 @@ public class LocationListTest
         assertEquals("Location list parse 2", emptyList, LocationList.parseString( "" ));
         assertEquals("Location list parse 3", emptyList, LocationList.parseString( " " ));
         assertEquals("Location list parse 4", emptyList, LocationList.parseString( "[]" ));
-        assertEquals("Location list parse 5", new LocationList( new Location( 0, 0 ) ), LocationList.parseString( "0+0" ));
-        assertEquals("Location list parse 6", new LocationList( new Location( 0, 0 ), new Location( 1, 2 ) ), LocationList.parseString( "0+0,1+2" ));
-        assertEquals("Location list parse 6", new LocationList( new Location( 0, 0 ), new Location( 1, 2 ), new Location( 9, 13 )  ), LocationList.parseString( "0+0,1+2,9+13" ));
+        assertEquals("Location list parse 5", new LocationList( new Location( 0, 0 ) ), LocationList.parseString( "0-0" ));
+        assertEquals("Location list parse 6", new LocationList( new Location( 0, 0 ), new Location( 1, 2 ) ), LocationList.parseString( "0-0,1-2" ));
+        assertEquals("Location list parse 6", new LocationList( new Location( 0, 0 ), new Location( 1, 2 ), new Location( 9, 13 )  ), LocationList.parseString( "0-0,1-2,9-13" ));
     }
 
     @Test

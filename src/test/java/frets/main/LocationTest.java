@@ -17,14 +17,12 @@ public class LocationTest
 	String nl = Display.NL;
 
     @Before
-    public void setup()
-    {
+    public void setup() {
 		standard = Fretboard.instance.getInstance( Fretboard.STANDARD );
     }
     
     @Test
-    public void testCompare()
-    {
+    public void testCompare() {
     	Location a = new Location ( 6, 5 );
     	Location b = new Location ( 5, 3 );
     	
@@ -34,8 +32,7 @@ public class LocationTest
     }
     
     @Test
-    public void testLocations()
-    {
+    public void testLocations() {
        	LocationList noLocations = standard.getLocations( null );
         assertTrue("No locations", null == noLocations );        	
        	
@@ -113,20 +110,34 @@ public class LocationTest
         }
         
         // Catch some legals
-        assertEquals("Constructor 1", "1+2", Location.parseString( "1+2" ).toString());
-        assertEquals("Constructor 2", "0+0", Location.parseString( "0+0" ).toString());
-        assertEquals("Constructor 3", "-1+-3", Location.parseString( "-1+-3" ).toString());
-        assertEquals("Constructor 4", "-1+-2", Location.parseString( "    -1    +     -2        " ).toString());
-        assertEquals("Constructor 5", (new Location("1+2")).toString(), Location.parseString( "1+2" ).toString());
+        assertEquals("Constructor 1", "1-2", Location.parseString( "1-2" ).toString());
+        assertEquals("Constructor 2", "0-0", Location.parseString( "0-0" ).toString());
+        // assertEquals("Constructor 3", "-1+-3", Location.parseString( "-1+-3" ).toString());
+        // assertEquals("Constructor 4", "-1+-2", Location.parseString( "    -1    +     -2        " ).toString());
+        assertEquals("Constructor 5", (new Location("1-2")).toString(), Location.parseString( "1-2" ).toString());
     }
  
     @Test
     public void testJson()  {
-    	Location expected = Location.parseString( "0+5" );
+    	Location expected = Location.parseString( "0-5" );
     	String json = expected.toJSON();   	
     	// System.out.println( "Location=" + expected.toString() + ", json=" + json );
     	Location returned = Location.fromJSON( json );
     	assertEquals( "Location json", expected, returned );
     }
+
+    @Test
+    public void testStringFret() {
+        // Test location reverting to String-Fret string.
+        Location lowA = new Location( 0, 5 );
+        assertEquals( "Guitar Low A", "E2-5", lowA.toStringFret( standard ));
+        Location highA = new Location( 5, 5 );
+        assertEquals( "Guitar High A", "E4-5", highA.toStringFret( standard ));
+
+        // test parsing of string name, fret to note    
+        assertEquals( "Guitar Low A parse", lowA, Location.parseStringFret("E2-5", standard));
+        assertEquals( "Guitar High A parse", highA, Location.parseStringFret("E4-5", standard));
+}
+
 
 }

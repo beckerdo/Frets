@@ -1,14 +1,14 @@
 package frets.main;
 
 /**
- * Represents locations "string#+fret#" on a fretboard.
+ * Represents locations "string#-fret#" on a fretboard.
  * The strings are numbered 0 (lowest frequency string) to N.
  * The frets are numbered 0 (nut) to N. 
  * 
  * @author <a href="mailto:dan@danbecker.info">Dan Becker</a>
  */
 public class Location implements Comparable<Location> {
-	public final static String DELIM = "+";
+	public final static String DELIM = "-";
 	
 	public Location() {
 		this.stringi = 0;
@@ -98,15 +98,15 @@ public class Location implements Comparable<Location> {
 	
 	@Override
 	@com.fasterxml.jackson.annotation.JsonValue
-	/** Return a String representation of the location.
-	 * The form is "string# > fret#", where the  
-	 */
+	/** Return a String representation of the location. */
 	public String toString() {
 		// Tried various forms. The last seemed most readable in a big list.
 		// (0,7)
 		// (0>7),(2>1),(1>7)
 		// 0>7,2>1,1>7
 		// 0+7,2+1,1+7
+		// 0|7,2|1,1|7
+		// 0-7,2-1,1-7
 		return stringi + DELIM + freti;
 	}
 	
@@ -141,6 +141,69 @@ public class Location implements Comparable<Location> {
 		return new Location( stringi, freti );
 	}
 
+	/**
+	 * Returns a String which names the string and fret. 
+	 * For low E string fret 3:
+	 *   normal toString: "0-3"
+	 *   this notation:   "E2-3"
+	 * 
+	 */
+	public String toStringFret(final Fretboard fretboard) {
+		if (null == fretboard)
+			return null;
+		if ((0 > stringi) || (0 > freti))
+			return null;
+		if (stringi >= fretboard.getStringCount())
+			return null;
+
+		GuitarString guitarString = fretboard.getString(stringi);
+		if (null == guitarString)
+			return null;
+		if (freti >= guitarString.getMaxFret())
+			return null;
+		
+		String openString = guitarString.getOpenNote().toString();
+		return openString + DELIM + freti;
+	}
+
+	/** Make a new instance from a String produced by toString of this class. */
+	public static Location parseStringFret( String fromString, final Fretboard fretboard ) {		
+		if ((null==fromString) || (fromString.length() < 1 ))
+			throw new IllegalArgumentException( "Bad input string=" + fromString );
+		String [] values = fromString.split( "[\\s" + DELIM + "\"]" ); // Can return "" when these match 
+		// System.out.println( "Location string=\"" + fromString + "\", value count=" + values.length );
+		if ((null==values) || (values.length < 2))
+			throw new IllegalArgumentException( "Bad parse of string=" + fromString );
+		int params = 0;
+		int stringi = 0;
+		int freti = 0;
+		for ( int i = 0; i < values.length; i++ ) {
+			if ( !values[ i ].isEmpty() ) {
+				if ( params == 0 ) {
+         		   String stringString = values[ i ];
+			       Note stringNote = Note.parse( stringString );
+			       while ( stringi < fretboard.getStringCount() ) {
+			    	   if ( stringNote.equals( fretboard.get( stringi ).getOpenNote() ))
+			    	      break;			    	   
+			       }
+			       if ( stringi == fretboard.getStringCount() ) {
+			    	   throw new IllegalArgumentException( "Could not match string=" + stringString + " of " + fromString + " to an open string." );
+			       }
+			       params++;
+				} else if (params == 1) {
+			       freti = Integer.parseInt(values[ i ]);
+			       params++;
+				} else
+				   // More than 2 params
+                   throw new IllegalArgumentException( "Bad parse of string=" + fromString );				
+			}
+		}
+		// System.out.println( "   param count=" + params );
+		if (params < 2)
+			throw new IllegalArgumentException( "Bad parse of string=" + fromString );
+		
+		return new Location( stringi, freti );
+	}
 	public String toJSON() {
 		String json = null;
 		try {
