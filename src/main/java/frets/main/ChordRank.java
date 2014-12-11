@@ -36,7 +36,7 @@ import frets.util.FilenameRegExFilter;
  * @author <a href="mailto:dan@danbecker.info">Dan Becker</a>
  */
 public class ChordRank implements Comparator<LocationList>, SimpleProperties<ChordRank> {
-	public final static String ELEMENT_DELIM = "'";
+	public final static String ELEMENT_DELIM = ",";
 	public final static String KEY_VAL_DELIM = "=";
 	
 	
