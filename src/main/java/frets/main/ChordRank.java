@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import frets.util.FilenameRegExFilter;
 
@@ -35,6 +36,10 @@ import frets.util.FilenameRegExFilter;
  * @author <a href="mailto:dan@danbecker.info">Dan Becker</a>
  */
 public class ChordRank implements Comparator<LocationList>, SimpleProperties<ChordRank> {
+	public final static String ELEMENT_DELIM = "'";
+	public final static String KEY_VAL_DELIM = "=";
+	
+	
 	public final static String STANDARD = "Standard";
 	
     public ChordRank() {
@@ -185,26 +190,52 @@ public class ChordRank implements Comparator<LocationList>, SimpleProperties<Cho
 	}
 
 	/**
-	 * Provides a description of the composite scores.
-	 */
-	public String [] compositeScoreNames() {
-		return new String [] { "Sum", "Fret Bounds", "Fret Span", "Skip Strings", "Same String" };		
-	}
-	
-	/**
 	 * Provides a pretty printed string of the scores for this list.
 	 */
 	public String getScoreString( LocationList list ) {
-		int [] scores = compositeScore( list ); 
+		int [] scores = compositeScore( list );
+		return toString( scores );
+	}
+
+	/**
+	 * Provides a description of the composite scores.
+	 */
+	public static String [] compositeScoreNames() {
+		return new String [] { "Sum", "Fret Bounds", "Fret Span", "Skip Strings", "Same String" };		
+	}
+	
+	/** Provides a pretty printed string of the scores from the given array. */
+	public String toString( int [] scores ) {
 		String [] names = compositeScoreNames();
         StringBuilder sb = new StringBuilder( "Scores" );
         sb.append( " " + names[ 0 ].toLowerCase() + "=" + scores[ 0 ] );
-        sb.append( ", " + names[ 1 ].toLowerCase() + "[" + minFret + "," + maxFret + "]=" + scores[ 1 ] );
-        sb.append( ", " + names[ 2 ].toLowerCase() + "=" + scores[ 2 ] );
-        sb.append( ", " + names[ 3 ].toLowerCase() + "=" + scores[ 3 ] );
-        sb.append( ", " + names[ 4 ].toLowerCase() + "=" + scores[ 4 ] );
+        sb.append( ELEMENT_DELIM + " " + names[ 1 ].toLowerCase() + "[" + minFret + "," + maxFret + "]" + KEY_VAL_DELIM + scores[ 1 ] );
+        sb.append( ELEMENT_DELIM + " " + names[ 2 ].toLowerCase() + KEY_VAL_DELIM + scores[ 2 ] );
+        sb.append( ELEMENT_DELIM + " " + names[ 3 ].toLowerCase() + KEY_VAL_DELIM + scores[ 3 ] );
+        sb.append( ELEMENT_DELIM + " " + names[ 4 ].toLowerCase() + KEY_VAL_DELIM + scores[ 4 ] );
       	return sb.toString();
 	}
+
+	/** Given a string from toString, produce an array of the scores. */
+    public static int [] toScores( String scoreString ) {
+        // "Scores sum=22, fret bounds[0,15]=0, fret span=7, skip strings=5, same string=10"
+    	if (( null == scoreString ) || ( scoreString.length() < 1 )) return new int [] { 0 };
+        StringTokenizer st = new StringTokenizer( scoreString, ELEMENT_DELIM + KEY_VAL_DELIM );
+        st.nextToken();
+        int sum = Integer.parseInt( st.nextToken() );
+        // String sum = scanner.next();
+        st.nextToken();
+        st.nextToken();
+        int fret = Integer.parseInt( st.nextToken() );
+        st.nextToken();
+        int span = Integer.parseInt( st.nextToken() );
+        st.nextToken();
+        int skip = Integer.parseInt( st.nextToken() );
+        st.nextToken();
+        int same = Integer.parseInt( st.nextToken() );
+        int [] scores  = new int [] { sum, fret, span, skip, same }; 
+        return scores;
+    }
 	
 	protected int minFret = 0;
 	protected int maxFret = 18;
