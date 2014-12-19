@@ -3,6 +3,7 @@ package frets.main;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -205,6 +206,27 @@ public class FretboardTest
 //        assertEquals("NoteList variation 62", "62/64 (332)", Fretboard.getPermutationString( variations, 62 ));
         assertEquals("NoteList variation 63", "63/64 (333/444)", Fretboard.getPermutationString( variations, 63 ));
     }
+
+    @Test
+    public void testVariationStringParsing() {
+        assertNull( "Empty", Fretboard.getPermutationValues( null ));
+
+        assertNull( "One", Fretboard.getPermutationValues( "1" ));
+
+        assertNull( "Delims", Fretboard.getPermutationValues( "/ ()" ));
+        
+        int [] two = Fretboard.getPermutationValues( "8/100" );
+        assertTrue( "Two", 3 == two.length );
+        assertArrayEquals( "Two values", new int[]{8,100,0}, two);
+        
+        int [] legit = Fretboard.getPermutationValues( "15/64 (123/456)" );
+        assertTrue( "Legit", 9 == legit.length );
+        assertArrayEquals( "Legit values", new int[]{15,64,3,1,4,2,5,3,6}, legit);
+    			
+        int [] doubleit = Fretboard.getPermutationValues( "15/64 (123/456) 10/20 (345/678)" );
+        assertNull( "Doubleit", doubleit );
+    }
+    
 
     @Test
     public void testVariationsWithOctaves()
@@ -851,4 +873,5 @@ public class FretboardTest
 		assertEquals( "Name", "Open G", test.getMetaName());
 		assertEquals( "Description", "Open G, D-G-D-G-B-D", test.getMetaDescription());		
     }
+    
 }

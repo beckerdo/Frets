@@ -431,6 +431,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 *    variationi == 2 ==> "2/6 (002/123)"  
 	 *    variationi == 3 ==> "3/6 (010/123)"  
 	 *    variationi == 6 ==> "6/6 (012/123)"  
+	 * FYI, this notation might breakdown with more than 10 locations on a large fretboard.
 	 */
 	public static String getPermutationString( final List<LocationList> variations, int variationi  ) {
 		String INVALID = "ø";
@@ -463,6 +464,45 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		return varString;
 	}
 
+	/** The inverse of getPermutationString.
+	 * Provides integer values for each element of data in a permutation string.
+	 * For example, given the following String "1/6 (001/123)", this 
+	 * returns the following values from the string.  
+	 *    decimal-variationi (1)
+	 *    decimal-variations (6)
+	 *    note count (3)
+	 *    note 0 variation i (0)
+	 *    note 0 variation n (1)
+	 *    note 1 variation i (0)
+	 *    note 1 variation n (2)
+	 *    note 2 variation i (1)
+	 *    note 2 variation n (3)
+	 * FYI, this notation might breakdown with more than 10 locations on a large fretboard.
+	 */
+	public static int [] getPermutationValues( String permutationString ) {
+		if (null == permutationString) return null;
+		String delims = "[() /]+";
+	    String [] tokens = permutationString.split( delims );
+	    if (( null == tokens ) || ( tokens.length < 2))
+	       return null;
+	    if ( tokens.length == 2 )
+	       return new int [] { Integer.parseInt( tokens[ 0 ] ), Integer.parseInt( tokens[ 1 ] ),  0 };
+	    if ( tokens.length == 4 ) {
+	    	int noteCount = tokens[ 2 ].length();
+ 	        int [] vals = new int [ 3 + 2 * noteCount ];
+ 	        vals[ 0 ] = Integer.parseInt( tokens[ 0 ] );
+ 	        vals[ 1 ] = Integer.parseInt( tokens[ 1 ] );
+ 	        vals[ 2 ] = noteCount;
+ 	        for ( int i = 0; i < noteCount; i++ ) {
+ 	        	int vali = 3 + i*2;
+ 	        	
+ 	        	vals[ vali ] = Integer.parseInt( tokens[ 2 ].substring( i, i+1 )); // note i, variation i, variation N
+ 	        	vals[ vali + 1 ] = Integer.parseInt( tokens[ 3 ].substring( i, i+1 ));
+ 	        }
+ 	        return vals;
+	    }
+		return null;		
+	}
 	
 	/** Returns a sorted list of strings not played with this location list. */
 	public List<Integer> getNotPlayedSet( LocationList locations ) {
