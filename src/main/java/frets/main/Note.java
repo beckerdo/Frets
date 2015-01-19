@@ -285,14 +285,14 @@ public class Note implements Comparable<Note>{
 	}
 	
 	/** Returns number of steps from given root.
-	 * Both notes are normalizes so the interval is always positive.
+	 * Both notes are normalized so the interval is always positive.
 	 */
 	public int getQuality( final Note root ) {
 		if ( null == root )
 			throw new IllegalArgumentException( "Need a root to determine note quality." );
 		int thisValue = getValue();
 		int rootValue = root.getValue();
-		if ( rootValue > thisValue ) return rootValue - thisValue;
+		while ( rootValue > thisValue ) rootValue -= 12;
 		return thisValue - rootValue;		
 	}
 	

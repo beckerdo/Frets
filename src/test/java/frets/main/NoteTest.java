@@ -254,6 +254,19 @@ public class NoteTest
     	assertFalse( "Accidentals 3", note.hasAccidental() );
     }
 
+    @Test
+    public void testQuality() {
+    	Note root = Note.parse( "G3" );
+    	Note rel1 = Note.parse( "Bb4" );
+    	assertTrue( "Quality above", 3 == rel1.getQuality( root ) );
+    	Note rel2 = Note.parse( "Bb5" );
+    	assertTrue( "Quality above", 3 == rel2.getQuality( root ) );
+    	Note rel3 = Note.parse( "Bb3" );
+    	assertTrue( "Quality below", 3 == rel3.getQuality( root ) );
+    	Note rel4 = Note.parse( "Bb2" );
+    	assertTrue( "Quality below", 3 == rel4.getQuality( root ) );
+    }
+
     public void showCharsets() {
         // Available char sets
         // Map map = Charset.availableCharsets(); 
