@@ -127,6 +127,22 @@ public class Display implements SimpleProperties<Display> {
 	    }
 	}
 
+	/** Sets the display window to the lowest fret in locations, min( minLocFret + aperture, maxFret ). */
+	public void setDisplayAreaStyleMinAperture( final Fretboard fretboard, int fretAperture ) {
+		displayAreaStyle = DisplayAreaStyle.MINAPERTURE;
+		displayAreaMin = new Location();
+		displayAreaMax = new Location();
+		displayAreaMin.setString(0);
+	    displayAreaMax.setString(fretboard.getStringCount() - 1);
+	    displayAreaMin.setFret(0);
+	    displayAreaMax.setFret( displayAreaMin.getFret() + fretAperture );
+	    // Window maxes out at max fret.
+	    if ( displayAreaMax.getFret() > fretboard.getMaxFret() ) {
+		    displayAreaMin.setFret( fretboard.getMaxFret() - fretAperture );
+		    displayAreaMax.setFret( fretboard.getMaxFret() );
+	    }
+	}
+
 	/** Sets the display window to the highest fret in locations, max( maxLocFret - aperture, minFret). */
 	public void setDisplayAreaStyleMaxAperture( final Fretboard fretboard, final LocationList locations, int fretAperture ) {
 		displayAreaStyle = DisplayAreaStyle.MAXAPERTURE;
@@ -211,6 +227,7 @@ public class Display implements SimpleProperties<Display> {
 	public int fretThickness = 3;
 	public Color stringColor = Color.DARK_GRAY;
 	public int stringThickness = 2;
+	public Color defaultNoteColor = Color.BLACK;
 	public Color [] intervalColors = new Color [] {
 	   new Color( 255,   0,   0 ), // root 
 	   new Color( 255,  85,   0 ), // d2 
@@ -225,6 +242,7 @@ public class Display implements SimpleProperties<Display> {
 	   new Color( 153,   0, 136 ), // b7
 	   new Color( 204,   0, 170 ), // 7
 	};
+	public Color defaultNoteTextColor = Color.WHITE;
 	public Color [] intervalTextColors = new Color [] {
        new Color( 255, 255, 255 ), // root 
 	   new Color( 255, 255, 255 ), // d2 
