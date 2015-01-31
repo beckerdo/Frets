@@ -111,30 +111,17 @@ public class Display implements SimpleProperties<Display> {
 
 	/** Sets the display window to the lowest fret in locations, min( minLocFret + aperture, maxFret ). */
 	public void setDisplayAreaStyleMinAperture( final Fretboard fretboard, final LocationList locations, int fretAperture ) {
+		// locations may be null
 		displayAreaStyle = DisplayAreaStyle.MINAPERTURE;
 		displayAreaMin = new Location();
 		displayAreaMax = new Location();
 		displayAreaMin.setString(0);
 	    displayAreaMax.setString(fretboard.getStringCount() - 1);
 	    displayAreaMin.setFret(0);
-		if ( null != locations ) 
+		if (( null != locations ) && ( locations.size() > 0)) 
 			displayAreaMin.setFret( locations.minFret() );
-	    displayAreaMax.setFret( displayAreaMin.getFret() + fretAperture );
-	    // Window maxes out at max fret.
-	    if ( displayAreaMax.getFret() > fretboard.getMaxFret() ) {
-		    displayAreaMin.setFret( fretboard.getMaxFret() - fretAperture );
-		    displayAreaMax.setFret( fretboard.getMaxFret() );
-	    }
-	}
-
-	/** Sets the display window to the lowest fret in locations, min( minLocFret + aperture, maxFret ). */
-	public void setDisplayAreaStyleMinAperture( final Fretboard fretboard, int fretAperture ) {
-		displayAreaStyle = DisplayAreaStyle.MINAPERTURE;
-		displayAreaMin = new Location();
-		displayAreaMax = new Location();
-		displayAreaMin.setString(0);
-	    displayAreaMax.setString(fretboard.getStringCount() - 1);
-	    displayAreaMin.setFret(0);
+		else
+			displayAreaMin.setFret( 0 );
 	    displayAreaMax.setFret( displayAreaMin.getFret() + fretAperture );
 	    // Window maxes out at max fret.
 	    if ( displayAreaMax.getFret() > fretboard.getMaxFret() ) {
@@ -265,7 +252,7 @@ public class Display implements SimpleProperties<Display> {
 	public boolean showOctaveVariations = false;
 	
 	// Support ghosted enharmonics and octaves
-	public Color enharmonicAlpha = new Color( 0x00, 0x00, 0x00, 0x50 );
+	public Color enharmonicAlpha = new Color( 0x00, 0x00, 0x00, 0x55 );
 	public Color octavesAlpha = new Color( 0x00, 0x00, 0x00, 0x20 );
 	
 	/** Pad takes a value, space, alignment, handedness, and orientation to produce a string.
