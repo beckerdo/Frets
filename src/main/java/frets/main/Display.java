@@ -219,7 +219,7 @@ public class Display implements SimpleProperties<Display> {
 	// Raster graphics
 	// Must decide if insets contain fret number and open string info.
 	public Insets insets = new Insets( 15, 10, 8, 10  );  // top, left, bottom, right
-	public Color backgroundColor = new Color( 245, 245, 220 );
+	public Color backgroundColor = new Color( 245, 245, 220, 0x00 ); // make transparent
 	public Color fretboardColor = new Color( 210, 180, 140 );
 	public Color nutColor = Color.DARK_GRAY;
 	public int nutThickness = 6;
