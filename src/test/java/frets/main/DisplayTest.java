@@ -3,7 +3,9 @@ package frets.main;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Set;
@@ -195,5 +197,17 @@ public class DisplayTest
 	    test.setDisplayAreaStyleMaxFretboard( fretboard );
 		assertEquals("Fret span max location", fretboard.getMaxFret(), test.getDisplayAreaFretAperture() );
 		assertEquals("Fret span min of max location", 0, test.displayAreaMin.getFret() );
+    }
+    
+    @Test 
+    public void testDisplayVariations() {
+    	Display test = new Display();
+    	test.showEnharmonicVariations = true;
+		assertEquals("Enharmonic variations", true, test.showEnharmonicVariations );    	
+    	test.showOctaveVariations = true;
+		assertEquals("Octave variations", true, test.showOctaveVariations );
+		
+		assertNotNull("Enharmonic alpha", test.enharmonicAlpha );    	
+		assertNotNull("Octaves alpha", test.octavesAlpha );    	
     }
 }

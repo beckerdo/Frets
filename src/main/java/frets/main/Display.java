@@ -219,7 +219,7 @@ public class Display implements SimpleProperties<Display> {
 	// Raster graphics
 	// Must decide if insets contain fret number and open string info.
 	public Insets insets = new Insets( 15, 10, 8, 10  );  // top, left, bottom, right
-	public Color backgroundColor = new Color( 245, 245, 220, 0x00 ); // make transparent
+	public Color backgroundColor = new Color( 245, 245, 220, 0x00 ); // support alpha transparency
 	public Color fretboardColor = new Color( 210, 180, 140 );
 	public Color nutColor = Color.DARK_GRAY;
 	public int nutThickness = 6;
@@ -260,8 +260,13 @@ public class Display implements SimpleProperties<Display> {
 	public Color noteShadowColor = Color.DARK_GRAY;
 	public boolean noteShadows = true;
 	public Color fretNumberColor = Color.DARK_GRAY;
-	public boolean showVariations = false;
 	
+	public boolean showEnharmonicVariations = false;
+	public boolean showOctaveVariations = false;
+	
+	// Support ghosted enharmonics and octaves
+	public Color enharmonicAlpha = new Color( 0x00, 0x00, 0x00, 0x50 );
+	public Color octavesAlpha = new Color( 0x00, 0x00, 0x00, 0x20 );
 	
 	/** Pad takes a value, space, alignment, handedness, and orientation to produce a string.
 	 * Examples: (with spaces and strings)
