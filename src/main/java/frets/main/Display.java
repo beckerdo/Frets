@@ -2,6 +2,7 @@ package frets.main;
 
 import java.awt.Color;
 import java.awt.Insets;
+import java.awt.Dimension;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,7 +22,11 @@ import frets.util.FilenameRegExFilter;
 
 /**
  * Encapsulates display variables.
- * Stuff that might affect display in the ASCII/char world.
+ * Stuff that might affect display.
+ * <p>
+ * Some instance vars are fretboard oriented: orientation, hand, display area, info type.
+ * Some instance vars are character oriented: characters for strings, frets, spaces.
+ * Some instance vars are raster oriented
  *
  * @author <a href="mailto:dan@danbecker.info">Dan Becker</a>
  */
@@ -29,6 +34,7 @@ public class Display implements SimpleProperties<Display> {
 	public static final String HORIZONTAL_NAME = "Basic horizontal";
 	public static final String VERTICAL_NAME = "Basic vertical";
 	
+	// Fretboard oriented, common
 	public enum Orientation {
 		HORIZONTAL,
 		VERTICAL
@@ -73,8 +79,6 @@ public class Display implements SimpleProperties<Display> {
 		FIRST,
 	}
 	public Set<NotPlayedLocation> notPlayed = EnumSet.of( NotPlayedLocation.HEAD );
-	public String notPlayedString = "x"; // Set to something (e.g. "X" or "x") to turn on
-	
 	public boolean openStringDisplay = false; // display string character above nut (otherwise space)	
 
 	// Numberings for frets
@@ -191,6 +195,10 @@ public class Display implements SimpleProperties<Display> {
 		return maxFret - minFret;				
 	}
 	
+	public boolean showEnharmonicVariations = false;
+	public boolean showOctaveVariations = false;
+	
+	
 	// Ascii graphics
 	public static final String NL = System.getProperty( "line.separator" );
 	public String spaceString = " ";
@@ -202,6 +210,8 @@ public class Display implements SimpleProperties<Display> {
 	public int headSpace = 1; // space for head
 	public int fretSpace = 1; // space for fret
 	public int noteSpace = 1; // space for note
+	public String notPlayedString = "x"; // Set to something (e.g. "X" or "x") to turn on
+	
 
 	// Raster graphics
 	// Must decide if insets contain fret number and open string info.
@@ -248,13 +258,24 @@ public class Display implements SimpleProperties<Display> {
 	public boolean noteShadows = true;
 	public Color fretNumberColor = Color.DARK_GRAY;
 	
-	public boolean showEnharmonicVariations = false;
-	public boolean showOctaveVariations = false;
-	
 	// Support ghosted enharmonics and octaves
 	public Color enharmonicAlpha = new Color( 0x00, 0x00, 0x00, 0x55 );
 	public Color octavesAlpha = new Color( 0x00, 0x00, 0x00, 0x20 );
+
+	// Support non-rectangular fretboard
+	public boolean wideningStrings = false; // nut to bridge widening
+	public boolean narrowingFrets = false; // nut to bridge narrowing
 	
+	// All measurements from Fender American Deluxe Telecaster 2012 
+	public Dimension nutSizeMM = new Dimension( 42, 3 ); 
+	public int fretThicknessMM = 3;
+	public int [] stringSpacingMM = new int [] { 35, 48, 53 }; // nut, fret 22, bridge (center to center)
+	public int [] fretDistAbsMM = new int [] { // measured from nut center to fret center
+		38,	72, 104, 135, 164, 191, 217, 241, 264, 285,
+		305, 325, 343, 360, 376, 392, 406, 420, 433, 445,
+		456, 467
+	};
+		
 	/** Pad takes a value, space, alignment, handedness, and orientation to produce a string.
 	 * Examples: (with spaces and strings)
 	 * 1) Note A, width 3, TOP, RIGHT, HORI: A__    A--

@@ -284,7 +284,7 @@ public class GuitarString implements Comparable<GuitarString> {
 						case PLAIN: break;
 						case FINGERNUMBER: value = String.valueOf( freti - lowFret + 1 );  break;
 						case FINGERLATIN: value = Finger.getFinger(freti - displayOpts.handPosition + 1).getShortLatin(); break;
-						case INTERVAL: value = String.valueOf( this.getNote( freti ).getQualityName( displayOpts.root )); break;
+						case INTERVAL: value = String.valueOf( this.getNote( freti ).getQualityName( displayOpts.root )); break; // only used by GuitarString?
 						case NAME: value = this.getNote( freti ).getName();	break;
 					}
 					display = Display.pad( value, noteSpace, space, align, 
