@@ -167,7 +167,7 @@ public class DisplayTest {
 		assertTrue("String getter null", 0 == test.getDisplayAreaStringAperture());
 		assertTrue("Fret getter null", 0 == test.getDisplayAreaFretAperture());
 
-		Fretboard fretboard = Fretboard.instance.getInstance(Fretboard.STANDARD); // max
+		Fretboard fretboard = Fretboard.getInstanceFromName(Fretboard.STANDARD); // max
 																					// fret																					// 18
 		LocationList locationsLow = LocationList.parseString("1-2,2-5,3-10");
 		LocationList locationsHigh = LocationList.parseString("1-16,2-18,3-20");

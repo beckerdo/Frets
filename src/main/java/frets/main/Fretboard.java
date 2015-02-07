@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import frets.main.Display.Orientation;
@@ -23,20 +25,22 @@ import frets.util.FilenameRegExFilter;
 /**
  * Encapsulates a fretboard.
  * A fretboard is a list of 0 or more guitar strings.
- * 
+ * <p>
  * Also includes some static factory methods for pulling standard fretboards
  * from a properties repository.
+ * There is a singleton fretboard in memory which is the
+ * last fretboard retrieved with {@link Fretboard#getInstance(String shortName)}
  *
  * @author <a href="mailto:dan@danbecker.info">Dan Becker</a>
  */
 public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard> {
 
 	/** Standard, out-of-the-box fretboard tuning name. */
-	public static final String STANDARD = "Standard";
+	public static final String STANDARD = "Guitar, Standard";
 	/** Standard, out-of-the-box fretboard tuning name. */
-	public static final String OPEN_D = "Open D";
+	public static final String OPEN_D = "Guitar, Open D";
 	/** Standard, out-of-the-box fretboard tuning name. */
-	public static final String OPEN_G = "Open G";
+	public static final String OPEN_G = "Guitar, Open G";
 
 	/** Courtesy constant to make "getVariation" calls more readable. */
 	public static final boolean ENHARMONICS = false;
@@ -794,10 +798,13 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	// SimpleProperties interface
 	protected String metaName;
 	protected String metaDescription;
-	protected String metaLocation; //url or file	
-	public static Fretboard instance = new Fretboard();
-	protected static Map<String,Fretboard> propertiesMap;
+	protected String metaLocation; //url or file
 
+	/** Key is fretboard name. Value is fretboard property file name. */
+	// Did not want to keep Map<String, Fretboard> in memory.
+	// So some of the SimpleProperties methods are inefficient and load lots of fretboards.
+	protected static Map<String,String> propertiesMap;
+	
 	public String getMetaName() {
 		return metaName;
 	}
@@ -810,6 +817,124 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		return metaLocation;
 	}
 
+	/** Opens a path at the given name, attempts to read files from there.
+	 *  Use optional filter as a java.io.FilenameFilter. */
+	public List<Fretboard> readFromPath( String pathName, String filterString ) throws IOException {
+		if ( null == propertiesMap ) {
+			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
+		}
+		List<Fretboard> fretboards = new LinkedList<Fretboard>();
+		for( String fileName : propertiesMap.values()  ) {
+			fretboards.add( getInstanceFromFileName(fileName));			
+		}
+        return fretboards;
+	}
+
+	/** Performs the loading of configured objects from the given location. */
+	public Map<String,Fretboard> loadProperties(String pathName, String filterString) throws IOException {
+		if ( null == propertiesMap ) {
+			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
+		}
+	   Map<String,Fretboard> fretMap = new HashMap< String, Fretboard>();
+		for( String simpleName : propertiesMap.keySet()  ) {
+			fretMap.put( simpleName, getInstanceFromFileName( propertiesMap.get(simpleName)));			
+		}
+	   return fretMap;
+	}
+
+	/** Opens a file at the given name, and reads all the properties into an object. */
+	public Fretboard readFromFile( String fileName ) throws IOException {
+		return getInstanceFromFileName( fileName );
+	}
+	
+	
+	/** Returns all fretboard names available for selection. */
+	public static String [] getFretboardNames() {
+		if ( null == propertiesMap ) {
+			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
+		}
+		Set<String> keys = propertiesMap.keySet();
+		String [] names = keys.toArray( new String[0] );
+		Arrays.sort( names );
+		return names;
+	}
+
+	/** Returns a standard fretboard that has been loaded from a
+	 *  central repository or properties list. */
+	public Fretboard getInstance( String shortName ) {
+		if ( null == propertiesMap ) {
+			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
+		}
+		String fileName = propertiesMap.get( shortName );
+  	    return getInstanceFromFileName( fileName );
+	}
+
+	/** Loads  fretboard property files from resource repo. */
+	public static Map<String,String> loadPropertiesNames( String pathName, String filterString ) {
+	   Map<String, String> fretboardMap = new HashMap<String,String>();
+	   try {
+		   readNamesFromPath(fretboardMap, pathName, filterString);
+	   } catch (IOException e) {
+		   System.out.println(e);
+	   }
+	   return fretboardMap;	   
+	}
+
+	/** 
+	 * Opens a path at the given name, attempts to read file names from there.
+	 * Use optional filter as a java.io.FilenameFilter. 
+	 */
+	public static void readNamesFromPath( Map<String,String> fretboardMap, String pathName, String filterString ) throws IOException {
+		File dir = new File( pathName );
+		if (!dir.isDirectory() )
+			throw new IOException( "Path must be directory, path=" + pathName );
+		
+		File [] files = null;
+		if (null != filterString && (filterString.length() > 0)) {
+			FilenameFilter filter = new FilenameRegExFilter( filterString );
+			files = dir.listFiles( filter );
+		} else {
+			files = dir.listFiles();
+		}
+		
+		// Build list of file paths from filter.
+		for ( File file : files ) {
+		   // Somewhat wastefull to throw a fully populated fretboard away, but it keeps memory consumption down.
+		   Fretboard fretboard = getInstanceFromFileName( file.getPath() );
+		   if ( null != fretboard)
+			   fretboardMap.put( fretboard.metaName, fretboard.getMetaLocation() );
+		}
+	}
+
+	/**
+	 * Looks up the given short name, returns object with those properties.
+	 */
+	public static Fretboard getInstanceFromName(String shortName) {
+		if ( null == propertiesMap ) {
+			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
+		}
+		String fileName = propertiesMap.get( shortName );
+		return getInstanceFromFileName( fileName );
+	}
+	/**
+	 * Opens a file at the given name, and reads all the properties into an object.
+	 */
+	public static Fretboard getInstanceFromFileName(String fileName) {
+		Fretboard test = new Fretboard();
+		try {
+			test.populateFromFile( fileName );
+			return test;
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+		return null;
+	}
+
+	/** Fills all values of this fretboard from the given file properties.
+	 * This also populates metaName, metaDescription, and metaLocation.
+	 * @param fileName
+	 * @throws IOException
+	 */
 	public void populateFromFile( String fileName ) throws IOException {
 		int maxFret = 15;
 		int octaveFret = 12;
@@ -863,60 +988,6 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		this.sortStrings();
 	}
 	
-	/** Opens a file at the given name, and reads all the properties into an object. */
-	public Fretboard readFromFile( String fileName ) throws IOException {
-	   Fretboard test = new Fretboard();
-	   test.metaLocation = fileName;
-	   test.populateFromFile( fileName );
-	   return test;
-	}
-
-	/** Opens a path at the given name, attempts to read files from there.
-	 *  Use optional filter as a java.io.FilenameFilter. */
-	public List<Fretboard> readFromPath( String pathName, String filterString ) throws IOException {
-		File dir = new File( pathName );
-		if (!dir.isDirectory() )
-			throw new IOException( "Path must be directory, path=" + pathName );
-		
-		File [] files = null;
-		if (null != filterString && (filterString.length() > 0)) {
-			FilenameFilter filter = new FilenameRegExFilter( filterString );
-			files = dir.listFiles( filter );
-		} else {
-			files = dir.listFiles();
-		}
-		
-		List<Fretboard> list = new LinkedList<Fretboard>();	
-		for ( File file : files ) {
-           list.add( readFromFile(file.getPath()));			
-		}
-		return list;
-	}
-
-	/** Returns a standard fretboard that has been loaded from a
-	 *  central repository or properties list. */
-	public Fretboard getInstance( String shortName ) {
-		if ( null == propertiesMap ) {
-			try {
-				propertiesMap = loadProperties("src/main/resources/frets/main/", "fretboard.*.properties");
-			} catch (IOException e) {
-				System.out.println(e);
-			}
-		}
-		return propertiesMap.get( shortName );
-	}
-
-	/** Performs the loading of standard fretboards from the central repos. */
-	public Map<String, Fretboard> loadProperties( String pathName, String filterString ) 
-	   throws IOException {
-	   Map<String, Fretboard> fretboardMap = new HashMap<String, Fretboard>();
-	   List<Fretboard> fretboardList = readFromPath(pathName,	filterString);
-	   for (Fretboard fretboard : fretboardList) {
-		   fretboardMap.put(fretboard.getMetaName(), fretboard);
-	   }
-	   return fretboardMap;	   
-	}
-
 	protected GuitarString lowString = null;
 	protected GuitarString highString = null;
 	protected List<GuitarString> strings = new LinkedList<GuitarString>();	

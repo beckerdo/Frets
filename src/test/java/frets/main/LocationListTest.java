@@ -125,7 +125,7 @@ public class LocationListTest
     @Test
     public void testListSorting()
     {
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
     	NoteList cRootsPos0 = new NoteList( 
     			Note.plus( Note.GuitarB, Interval.half ),
     			Note.plus( Note.GuitarA, Interval.wholehalf )
@@ -133,10 +133,10 @@ public class LocationListTest
        	List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations( cRootsPos0 );
        	int varCount = Fretboard.getPermutationCount( cRootsPos0Vars );
     	// System.out.println( "Sorted C root location list variations=" + varCount );
-    	assertTrue("Sorted list count", varCount == 8 );
+    	assertTrue("Sorted list count", varCount == 10 );
        	
     	LocationList locations = Fretboard.getPermutation( cRootsPos0Vars, 3 );
-    	LocationList expected = new LocationList( new Location( 0, 8 ), new Location( 4, 1 ) );
+    	LocationList expected = new LocationList( new Location( 0, 8 ), new Location( 3, 5 ) );
     	// System.out.println( "Sorted C root location list=" + cRootsPos0Vars );
     	assertEquals("Sorted variation list", expected, locations );
     }
@@ -193,7 +193,7 @@ public class LocationListTest
     			new Location( 2, 6 ),
     			new Location( 3, 8 ) );
 
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );   	
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );   	
     	NoteList fmin = fminVar.getNoteList( standard );
     	
     	NoteList expected = new NoteList(
@@ -208,7 +208,7 @@ public class LocationListTest
     @Test
     public void testTranspose()
     {
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );   	
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );   	
     	LocationList fminVar = new LocationList(
     			new Location( 0, 8 ),
     			new Location( 1, 8 ),
@@ -245,7 +245,7 @@ public class LocationListTest
     @Test(expected=IllegalArgumentException.class)
     public void testTransposeFretboardFretException()
     {
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );   	
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );   	
     	LocationList fminVar = new LocationList(
     			new Location( 0, 8 ),
     			new Location( 1, 8 ),
@@ -260,7 +260,7 @@ public class LocationListTest
     @Test(expected=IllegalArgumentException.class)
     public void testTransposeFretboardStringException()
     {
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );   	
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );   	
     	LocationList fminVar = new LocationList(
     			new Location( 0, 8 ),
     			new Location( 1, 8 ),
@@ -279,7 +279,7 @@ public class LocationListTest
 			Note.plus( Note.GuitarB, Interval.half ),
 			Note.plus( Note.GuitarA, Interval.wholehalf )
     	);
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
 
     	List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations( cRootsPos0 );
     	ChordRank ranker = new ChordRank( 0, 5 );
@@ -341,7 +341,7 @@ public class LocationListTest
 			Note.plus( Note.GuitarD, Interval.perfectFifth ),
 			Note.plus( Note.GuitarD, Interval.majorSeventh )
     	);
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
 
     	List<LocationList> d7Vars = standard.getEnharmonicVariations( d7 );
     	// ChordRank ranker = new ChordRank( 0, 12, 5, 10 );
@@ -407,7 +407,7 @@ public class LocationListTest
 			Note.plus( Note.GuitarD, Interval.perfectFifth ),
 			Note.plus( Note.GuitarD, Interval.majorSeventh )
     	);
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
     	String nl = Display.NL;
 
     	List<LocationList> d7Vars = standard.getOctaveVariations( d7 );
@@ -469,7 +469,7 @@ public class LocationListTest
     	Note lowF = Note.plus( Note.GuitarLowE, Interval.half );
     	NoteList fmin = new NoteList( lowF, "R-b3-5-b7" );
     	
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
     	List<LocationList> fminVars = standard.getVariations( fmin, Fretboard.ENHARMONICS );
 		int varCount = Fretboard.getPermutationCount( fminVars );
 
@@ -497,11 +497,11 @@ public class LocationListTest
     	Note lowF = Note.plus( Note.GuitarLowE, Interval.half );
     	NoteList fmin = new NoteList( lowF, "R-b3-5-b7" );
     	
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );   	 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );   	 
     	List<LocationList> fminVars = standard.getVariations( fmin, Fretboard.OCTAVES );
 		int varCount = Fretboard.getPermutationCount( fminVars );
 		System.out.println( "Formula test permutation count=" + varCount );
-   	    assertEquals( "Formula inversion permutation count", 5832, varCount );
+   	    assertEquals( "Formula inversion permutation count", 13310, varCount );
 		
     	ChordRank ranker = ChordRank.instance.getInstance( ChordRank.STANDARD  );
     	List<LocationList> fminLocations = Fretboard.explodeAndSort( fminVars, ranker );
@@ -566,7 +566,7 @@ public class LocationListTest
     @Test
     public void testLocationListFilter()
     {
-		Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );
+		Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );
 		LocationList locations = standard.getLocations( Note.GuitarG );
        	// System.out.println( "Locations of G=" + locations );
         assertTrue("G locations", 4 == locations.size() );        	
@@ -597,7 +597,7 @@ public class LocationListTest
     	// now add in a 2/9 note, variable,
     	// find the G with 2/9 variations and rank them.
     	
-		Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD );
+		Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );
 		LocationList barreG = LocationList.parseString( "0+3,1+5,2+5,3+4,4+5,5+3" );
 		
     	List<LocationList> Gadd9 = standard.getVariations( barreG, new NoteList( Note.parse( "B3") ), 0, standard.getMaxFret(), Fretboard.ENHARMONICS );

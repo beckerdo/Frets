@@ -18,7 +18,7 @@ public class LocationTest
 
     @Before
     public void setup() {
-		standard = Fretboard.instance.getInstance( Fretboard.STANDARD );
+		standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );
     }
     
     @Test

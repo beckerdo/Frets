@@ -68,7 +68,7 @@ public class ExperimentTest
     			new Location( 2, 6 ),
     			new Location( 3, 8 ) );
 
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
     	ChordRank ranker = ChordRank.instance.getInstance( ChordRank.STANDARD  );
 		Display displayOpts = Display.instance.getInstance( Display.HORIZONTAL_NAME );
 		displayOpts.infoType = Display.InfoType.INTERVAL;
@@ -86,7 +86,7 @@ public class ExperimentTest
 
     public void testVariation( String name, NoteList noteList, boolean includeOctaves )
     {
-    	Fretboard standard = Fretboard.instance.getInstance( Fretboard.STANDARD ); 
+    	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
  
     	List<LocationList> noteListVars = standard.getVariations( noteList, includeOctaves );
     	ChordRank ranker = ChordRank.instance.getInstance( ChordRank.STANDARD  );
