@@ -6,10 +6,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +24,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import frets.main.Display.Orientation;
 import frets.util.FilenameRegExFilter;
@@ -46,6 +58,9 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	public static final boolean ENHARMONICS = false;
 	/** Courtesy constant to make "getVariation" calls more readable. */
 	public static final boolean OCTAVES = true;
+
+	public static final String PROP_PATH = "frets/main/fretboards/";
+	public static final String ALL_FRETBOARD_PROPS = "fretboard[.].*[.]properties";
 	
 	public Fretboard( final List<GuitarString> strings) {
 		setStrings( strings );	
@@ -326,7 +341,8 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		}
 		for ( int notei = 0; notei < variableNotes.size(); notei++ ) {
 			Note note = variableNotes.get( notei );
-			LocationList locations = getLocations( note, minFret, maxFret );
+			LocationList locations = getLocations( note, minFret, maxFret ); 
+			// What if note is not available on this fretboard? For example bass note on soprano ukelele
 			
 			if ( includeOctaves == OCTAVES ) {
 		        // Get lower octave variations.
@@ -798,12 +814,12 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	// SimpleProperties interface
 	protected String metaName;
 	protected String metaDescription;
-	protected String metaLocation; //url or file
+	protected String metaLocation; // url or file
 
 	/** Key is fretboard name. Value is fretboard property file name. */
 	// Did not want to keep Map<String, Fretboard> in memory.
 	// So some of the SimpleProperties methods are inefficient and load lots of fretboards.
-	protected static Map<String,String> propertiesMap;
+	protected static Map<String,String> propertiesMap = loadPropertiesNames( PROP_PATH, ALL_FRETBOARD_PROPS );
 	
 	public String getMetaName() {
 		return metaName;
@@ -820,25 +836,19 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	/** Opens a path at the given name, attempts to read files from there.
 	 *  Use optional filter as a java.io.FilenameFilter. */
 	public List<Fretboard> readFromPath( String pathName, String filterString ) throws IOException {
-		if ( null == propertiesMap ) {
-			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
-		}
 		List<Fretboard> fretboards = new LinkedList<Fretboard>();
 		for( String fileName : propertiesMap.values()  ) {
-			fretboards.add( getInstanceFromFileName(fileName));			
+			fretboards.add( getInstanceFromFileName( fileName ));			
 		}
         return fretboards;
 	}
 
 	/** Performs the loading of configured objects from the given location. */
 	public Map<String,Fretboard> loadProperties(String pathName, String filterString) throws IOException {
-		if ( null == propertiesMap ) {
-			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
-		}
 	   Map<String,Fretboard> fretMap = new HashMap< String, Fretboard>();
-		for( String simpleName : propertiesMap.keySet()  ) {
-			fretMap.put( simpleName, getInstanceFromFileName( propertiesMap.get(simpleName)));			
-		}
+	   for( String simpleName : propertiesMap.keySet()  ) {
+		   fretMap.put( simpleName, getInstanceFromFileName( propertiesMap.get( simpleName )));			
+	   }
 	   return fretMap;
 	}
 
@@ -847,12 +857,8 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		return getInstanceFromFileName( fileName );
 	}
 	
-	
 	/** Returns all fretboard names available for selection. */
 	public static String [] getFretboardNames() {
-		if ( null == propertiesMap ) {
-			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
-		}
 		Set<String> keys = propertiesMap.keySet();
 		String [] names = keys.toArray( new String[0] );
 		Arrays.sort( names );
@@ -862,20 +868,17 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	/** Returns a standard fretboard that has been loaded from a
 	 *  central repository or properties list. */
 	public Fretboard getInstance( String shortName ) {
-		if ( null == propertiesMap ) {
-			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
-		}
 		String fileName = propertiesMap.get( shortName );
   	    return getInstanceFromFileName( fileName );
 	}
 
-	/** Loads  fretboard property files from resource repo. */
+	/** Instantiates a map. Loads fretboard property files from resource repo. */
 	public static Map<String,String> loadPropertiesNames( String pathName, String filterString ) {
 	   Map<String, String> fretboardMap = new HashMap<String,String>();
 	   try {
 		   readNamesFromPath(fretboardMap, pathName, filterString);
-	   } catch (IOException e) {
-		   System.out.println(e);
+	   } catch (Exception e) {
+		   System.out.print( "Fretboard.loadPropertiesName e=" + e );
 	   }
 	   return fretboardMap;	   
 	}
@@ -884,66 +887,152 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 * Opens a path at the given name, attempts to read file names from there.
 	 * Use optional filter as a java.io.FilenameFilter. 
 	 */
-	public static void readNamesFromPath( Map<String,String> fretboardMap, String pathName, String filterString ) throws IOException {
-		File dir = new File( pathName );
-		if (!dir.isDirectory() )
-			throw new IOException( "Path must be directory, path=" + pathName );
-		
-		File [] files = null;
-		if (null != filterString && (filterString.length() > 0)) {
-			FilenameFilter filter = new FilenameRegExFilter( filterString );
-			files = dir.listFiles( filter );
-		} else {
-			files = dir.listFiles();
-		}
+	public static void readNamesFromPath( Map<String,String> fretboardMap, String path, String regExFilter ) throws URISyntaxException, IOException {
+		String [] shortNames = getResourceListing( path, regExFilter );
 		
 		// Build list of file paths from filter.
-		for ( File file : files ) {
-		   // Somewhat wastefull to throw a fully populated fretboard away, but it keeps memory consumption down.
-		   Fretboard fretboard = getInstanceFromFileName( file.getPath() );
+		for ( String shortName : shortNames ) {
+		   // Somewhat wasteful to throw a fully populated fretboard away, but it keeps memory consumption down.
+		   Fretboard fretboard = getInstanceFromFileName( shortName );
+		   // System.out.println( "Fretboard.readNamesFromPath resource name=" + shortName + ", fretboard=" +fretboard);
 		   if ( null != fretboard)
 			   fretboardMap.put( fretboard.metaName, fretboard.getMetaLocation() );
 		}
 	}
 
+   /** Resource load location for property files
+    *  file: (file system) or jar: (JAR) protocols
+    *  This value is set by {@link Fretboard#getResourceListing(String, String)}
+    */
+   public static File resourceLocation;
+   
+  /**
+   * List directory contents for a resource folder. Not recursive.
+   * Works for regular files and also JARs.
+   * <p>
+   * A side effect of this method is the resourceLocation is populated.
+   * There are different resource locations for file: (file system) or jar: (JAR) protocols
+   * 
+   * @param path Path for resources. Should not start with "/" but must end with "/" so that JAR path prefixes are clipped properly.
+   * @param filter a regular expression such as ".*properties" for filtering certain names.
+   * @return Just the name of each member item, not the full paths.
+   * @throws URISyntaxException for non-file or non-JAR protocol 
+   * @throws IOException 
+   */
+   public static String [] getResourceListing(String path, String regExFilter) throws URISyntaxException, IOException {
+	  // System.out.println( "Fretboard.getResourceListing path=" + path + ", regex=" + regExFilter );
+	  @SuppressWarnings("rawtypes")
+	  Class clazz = Fretboard.class;
+      URL dirURL = clazz.getClassLoader().getResource(path);
+      
+      if (dirURL != null && dirURL.getProtocol().equals("file")) {
+    	 resourceLocation = new File(dirURL.toURI());
+    	 // System.out.println( "Fretboard.getResourceListing dir path=" + dir.getPath() );
+    	 if ( !resourceLocation.isDirectory() )
+    	     throw new IOException ( "Path \"" + path + "\" is not a directory." );
+    	 if (( null != regExFilter ) && ( regExFilter.length() > 0 )) {
+    		FilenameFilter filter = new FilenameRegExFilter( regExFilter );
+    		String [] names = resourceLocation.list( filter );
+      	    // System.out.println( "Fretboard.getResourceListing find count=" + names.length + ", example name=" + names[ 0 ]);
+      	    return names;
+    	 } else {
+    		String [] names = resourceLocation.list();
+      	    // System.out.println( "Fretboard.getResourceListing find count=" + names.length + ", example name=" + names[ 0 ]);
+  	    	return names;
+         } 
+      }
+      
+      if (dirURL == null) {
+         // In case of a jar file, we can't actually find a directory. Have to assume the same jar as clazz.
+         String me = clazz.getName().replace(".", "/")+".class";
+         dirURL = clazz.getClassLoader().getResource(me);
+    	 resourceLocation = new File(dirURL.toURI()); // Will be null for JAR files
+      }
+      
+	  Pattern pattern = Pattern.compile(regExFilter); 
+      if (dirURL.getProtocol().equals("jar")) {
+    	// System.out.println( "Fretboard.getResourceListing got a JAR" );
+        String jarPath = dirURL.getPath().substring(5, dirURL.getPath().indexOf("!")); //strip out only the JAR file
+        JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
+    	System.out.println( "Fretboard.getResourceListing jar=" + jar.getName() );
+    	
+        Enumeration<JarEntry> entries = jar.entries(); // gives ALL entries in jar
+        Set<String> result = new HashSet<String>(); // avoid duplicates in case it is a subdirectory
+        while(entries.hasMoreElements()) {
+          String name = entries.nextElement().getName();
+          if (name.startsWith(path)) { // filter according to the path
+            // System.out.println( "Fretboard.getResourceListing name=" + name + ", starts with path?=" + name.startsWith(path) );
+            String entry = name.substring(path.length());
+            int checkSubdir = entry.indexOf( "/" ); // do not use File.separator. JARs always use "/".
+            // System.out.println( "Fretboard.getResourceListing entry=" + entry + ", contains /=" + checkSubdir );
+            if (checkSubdir >= 0) {
+              // Recursion here? No, if it is a subdirectory, we just return the directory name. 
+              entry = entry.substring(0, checkSubdir);
+            }
+  	        Matcher matcher = pattern.matcher(entry);
+            // System.out.println( "Fretboard.getResourceListing entry=" + entry + ", matches " + regExFilter + "?=" + matcher.matches() );
+  	        if ( matcher.matches() )
+  	        	result.add(entry);
+          }
+        }
+        jar.close();
+        String [] names = result.toArray(new String[result.size()]); 
+        System.out.println( "Fretboard.getResourceListing find count=" + names.length + ", example name=" + names[ 0 ]);
+        return names;
+      } 
+        
+      throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
+   }
+   
 	/**
 	 * Looks up the given short name, returns object with those properties.
 	 */
-	public static Fretboard getInstanceFromName(String shortName) {
-		if ( null == propertiesMap ) {
-			propertiesMap = loadPropertiesNames("src/main/resources/frets/fretboards", "fretboard.*.properties");
-		}
+	public static Fretboard getInstanceFromName( String shortName ) {
 		String fileName = propertiesMap.get( shortName );
 		return getInstanceFromFileName( fileName );
 	}
+	
 	/**
 	 * Opens a file at the given name, and reads all the properties into an object.
+	 * @param shortName - the short listing name of the property file.
 	 */
-	public static Fretboard getInstanceFromFileName(String fileName) {
-		Fretboard test = new Fretboard();
+	public static Fretboard getInstanceFromFileName( String shortName ) {
 		try {
-			test.populateFromFile( fileName );
+			Fretboard test = new Fretboard();
+			test.populateFromFile( resourceLocation, shortName );
+			test.metaLocation = shortName;			
 			return test;
-		} catch (IOException e) {
-			System.out.println(e);
+		} catch (Exception e) {
+			System.out.println( "Fretboard.getInstanceFromFileName e=" + e);
 		}
 		return null;
 	}
 
 	/** Fills all values of this fretboard from the given file properties.
 	 * This also populates metaName, metaDescription, and metaLocation.
-	 * @param fileName
+	 * @param resourceLocation - the target directory of file based loading. Null for JAR or classpath based loading.
+	 * @param shortName - the path free name of the property file
 	 * @throws IOException
 	 */
-	public void populateFromFile( String fileName ) throws IOException {
+	public void populateFromFile( File resourceLocation, String shortName ) throws IOException {
 		int maxFret = 15;
 		int octaveFret = 12;
 		// Read properties file. 
 		Properties properties = new Properties();
-		properties.load(new FileInputStream( fileName ));
 
-		this.metaLocation = fileName;
-		
+		// Load properties
+		if ( null != resourceLocation ) {
+			// Relative to file system target for this app.
+			File file = new File( resourceLocation, shortName );
+			// System.out.println( "Fretboard.getInstanceFromFileName resourceLocation=" + resourceLocation + ", name=" + shortName );
+			properties.load(new FileInputStream( file ));
+		} else {
+			// Relative to JAR file location.
+			InputStream is = Fretboard.class.getResourceAsStream( "fretboards/" + shortName ); // relative to class package
+			// System.out.println( "Fretboard.getInstanceFromFileName resourceLocation=" + is + ", name=" + shortName );
+			properties.load( is );			
+		}
+
 		// First load fret values
 		// Convert from properties to object
 		for ( Iterator<Object> it = properties.keySet().iterator(); it.hasNext(); ) {

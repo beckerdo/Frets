@@ -400,7 +400,7 @@ public class NoteList implements List<Note>, Comparable<NoteList> {
 		if ( null != list ) {
 		   int first = list.get( 0 ).getAbsoluteValue();
 		   for ( int i = 0; i < list.size(); i++ ) {
-			   if ( i > 0 ) sb.append("," );
+			   if ( i > 0 ) sb.append( DELIM );
 			   sb.append( list.get( i ).getAbsoluteValue() - first );
 		   }
 		}
@@ -425,7 +425,7 @@ public class NoteList implements List<Note>, Comparable<NoteList> {
 		if ( null != list ) {
 		   int previous = list.get( 0 ).getAbsoluteValue();
 		   for ( int i = 0; i < list.size(); i++ ) {
-			   if ( i > 0 ) sb.append("," );
+			   if ( i > 0 ) sb.append( DELIM );
 			   sb.append( list.get( i ).getAbsoluteValue() - previous );
 			   previous = list.get( i ).getAbsoluteValue();
 		   }

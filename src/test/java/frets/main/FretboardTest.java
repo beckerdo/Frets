@@ -8,9 +8,11 @@ import static org.junit.Assert.assertArrayEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 import static frets.main.Display.Orientation;
 import static frets.main.Display.Hand;
@@ -704,13 +706,13 @@ public class FretboardTest {
 
 	@Test
 	public void testPropertiesDefault() {
-		String location = "src/main/resources/frets/fretboards/fretboard.guitar.properties";
-		Fretboard test = Fretboard.getInstanceFromFileName(location);
+		String shortName = "fretboard.guitar.properties";
+		Fretboard test = Fretboard.getInstanceFromFileName(shortName);
 
 		// Test meta data
 		assertEquals("Name", "Guitar, Standard", test.getMetaName());
 		assertEquals("Description", "Guitar, Standard, E-A-D-G-B-E", test.getMetaDescription());
-		assertEquals("Location", location, test.getMetaLocation());
+		assertEquals("Location", shortName, test.getMetaLocation());
 
 		GuitarString first = test.getString(0);
 		int maxFret = first.getMaxFret();
@@ -728,11 +730,10 @@ public class FretboardTest {
 	@Test
 	public void testPropertiesFromPath() {
 		try {
-			String location = "src/main/resources/frets/fretboards/fretboard.guitar.properties";
+			String location ="fretboard.guitar.properties";
 			Fretboard instance = Fretboard.getInstanceFromFileName(location);
-			String path = "src/main/resources/frets/fretboards";
-			String filter = "fretboard.*.properties";
-			List<Fretboard> fretboards = instance.readFromPath(path, filter);
+			String filter = "fretboard..*.properties";
+			List<Fretboard> fretboards = instance.readFromPath(Fretboard.PROP_PATH, filter);
 
 			assertEquals("FilenameRegExFilter prop file count", 19L, fretboards.size());
 
@@ -757,7 +758,7 @@ public class FretboardTest {
 
 	@Test
 	public void testProperties() {
-		String location = "src/main/resources/frets/fretboards/fretboard.guitar.properties";
+		String location = "fretboard.guitar.properties";
 		Fretboard instance = Fretboard.getInstanceFromFileName(location);
 		
 		Fretboard test = instance.getInstance(Fretboard.STANDARD);
@@ -773,4 +774,20 @@ public class FretboardTest {
 		assertEquals("Description", "Guitar, Open G, D-G-D-G-B-D", test.getMetaDescription());
 	}
 
+	@Test
+	public void testGetResourceListing() {
+		try {
+			String[] gNames = Fretboard.getResourceListing(Fretboard.PROP_PATH, "fretboard[.]guitar.*[.]properties");
+			assertEquals("Name", 7, gNames.length);
+			String[] bassNames = Fretboard.getResourceListing(Fretboard.PROP_PATH, "fretboard[.]bass.*[.]properties");
+			assertEquals("Name", 3, bassNames.length);
+			String[] bariNames = Fretboard.getResourceListing(Fretboard.PROP_PATH, "fretboard[.]bari.*[.]properties");
+			assertEquals("Name", 3, bariNames.length);
+			String[] ukeNames = Fretboard.getResourceListing(Fretboard.PROP_PATH, "fretboard[.]uke.*[.]properties");
+			assertEquals("Name", 6, ukeNames.length);
+		} catch (Exception e) {
+			assertNull("Exception=" + e, e);
+		}
+
+	}
 }

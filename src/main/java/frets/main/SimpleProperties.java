@@ -28,7 +28,7 @@ public interface SimpleProperties<T> {
 	/** Performs the loading of configured objects from the given location. */
 	public Map<String,T> loadProperties(String pathName, String filterString) throws IOException;
 
-	// Property related meta-data
+	// Property related meta-data in an instance
 	// protected String metaName;
 	// protected String metaDescription;
 	// protected String metaLocation; //url or file	
