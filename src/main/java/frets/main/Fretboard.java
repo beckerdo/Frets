@@ -316,7 +316,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 *                 [3,0]
 	 *                 ...
 	 * </pre>
-	 *
+	 * <p>
 	 * Supports a fixed list of locations that can be thrown into the variation mix. So, given
 	 * the above variable notes, one can also find and rank variations close to a fixed location
 	 * such as B on the low E string (location [0, 7]).

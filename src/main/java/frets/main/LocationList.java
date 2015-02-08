@@ -36,8 +36,8 @@ public class LocationList implements List<Location>, Comparable<LocationList> {
 	public LocationList( final Collection<? extends Location> other ) {
 		// addAll( other );
 		if ( null != other ) {
-			for ( Location notei : other ) {
-				list.add( new Location( notei ) );
+			for ( Location loc : other ) {
+				list.add( new Location( loc ) );
 			}
 		}
 	}
@@ -70,8 +70,8 @@ public class LocationList implements List<Location>, Comparable<LocationList> {
 	public LocationList set( final Collection<? extends Location> other ) {
 		clear();
 		if ( null != other ) {
-			for ( Location notei : other ) {
-				list.add( new Location( notei ) );
+			for ( Location loc : other ) {
+				list.add( new Location( loc ) );
 			}
 		}
 		return this;
@@ -182,7 +182,7 @@ public class LocationList implements List<Location>, Comparable<LocationList> {
 
 	
 	/** Locations should be of same order and length to be equal.
-	 * First lower note is less than
+	 * First lower location is less than
 	 * Shorter sequences are less than longer sequences
 	 * Examples:
 	 * A < B
@@ -209,7 +209,7 @@ public class LocationList implements List<Location>, Comparable<LocationList> {
 		   if (locationCompare != 0)
 			   return locationCompare;
 		}
-        // Lists are equal for first N notes.
+        // Lists are equal for first N locations.
 		if (list.size() < o.list.size())
 			return -2;
 		if (list.size() > o.list.size())
@@ -547,7 +547,9 @@ public class LocationList implements List<Location>, Comparable<LocationList> {
 		return noteList;
 	}
 	
-	/** Returns a string indicating the notes for these locations. */
+	/** 
+	 * Returns a string indicating the notes for these locations. 
+	 */
 	public String getNotes( final Fretboard fretboard, String space ) {
 		return getNoteList( fretboard ).toString( space );
 	}

@@ -147,4 +147,5 @@ public class LocationTest
          	assertEquals( "IllegalArgumentException",  IllegalArgumentException.class, e.getClass() );
          }
     }
+    
 }
