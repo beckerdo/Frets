@@ -100,16 +100,28 @@ public class FretboardTest {
 		List<LocationList> noVariations = standard.getEnharmonicVariations(null);
 		assertTrue("No variations", null == noVariations);
 
-		// No notes on fretboard == variations 1 == variation.count of 0
+		// No notes on fretboard == variations size 1 == variation.count of 0
 		List<LocationList> emptyVariations = standard.getEnharmonicVariations(
-			new NoteList(Note.plus(Note.GuitarHighE,1001)));
-		// System.out.println( "Empty variations size=" +
-		// emptyVariations.size());
+			new NoteList(Note.plus(Note.GuitarHighE,100)));
+		// System.out.println( "One note empty List<LocationList> string=" + emptyVariations.toString()); // List prints "[]"
+		// System.out.println( "Empty variations size=" + emptyVariations.size());
 		assertTrue("Empty variation size", 1 == emptyVariations.size());
 		int numVariations = Fretboard.getPermutationCount(emptyVariations);
 		// System.out.println( "Empty variations count=" + numVariations );
 		assertTrue("Empty variation count", 0 == numVariations);
 
+		// No notes on fretboard (100 below and 100 above) == variations size 1 == variation.count of 0
+		List<LocationList> noneOnFretboardVariations = standard.getEnharmonicVariations(
+			new NoteList(Note.minus(Note.GuitarLowE, -100),   Note.plus(Note.GuitarHighE,100)));
+		// System.out.println( "Two note empty List<LocationList> string=" + noneOnFretboardVariations.toString()); // List prints ugly "[, ]"
+		// System.out.println( "None variations size=" + noneOnFretboardVariations.size());		
+		assertTrue("None variation size", 2 == noneOnFretboardVariations.size());
+		int numNoneVariations = Fretboard.getPermutationCount(noneOnFretboardVariations);
+		System.out.println( "None variations count=" + numNoneVariations );
+		assertTrue("None variation count", 0 == numNoneVariations);
+
+		
+		
 		// Expected variations = 4 * x * 1 * 2 = 8
 		NoteList noteSet = new NoteList(Note.GuitarG, // 4 locations,
 				Note.plus(Note.GuitarHighE, 1001), // 0 locations
