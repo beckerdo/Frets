@@ -69,6 +69,9 @@ public class GuitarStringTest
         assertTrue("Less", 0 > lowE.compareTo(highE));        	
         assertTrue("Greater", 0 < highE.compareTo(lowE));        	
         assertTrue("Equal", 0 == G1.compareTo(G2));        	
+        
+        GuitarString lowB = new GuitarString( Note.parse( "B2" ));
+        assertTrue("Less B", 0 > lowB.compareTo(highE));        	
     }
 
     @Test

@@ -399,9 +399,9 @@ public class GuitarString implements Comparable<GuitarString> {
 
 	/** Higher string returns higher value compared to others. */
 	public int compareTo(GuitarString o) {
-		int value = 1009 * openNote.compareTo( o.openNote );
-		value += 101 * ( octaveFret - o.octaveFret );
-		value += maxFret - o.maxFret;
+		int value = openNote.compareTo( o.openNote );
+		// value += ( octaveFret - o.octaveFret );
+		// value += maxFret - o.maxFret;
 		return value;
 	}
 

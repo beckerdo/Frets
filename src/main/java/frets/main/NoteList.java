@@ -386,12 +386,30 @@ public class NoteList implements List<Note>, Comparable<NoteList> {
 	}
 
 	/** Get all note intervals relative to the first note. */
-	public NoteList getAbsoluteIntervals() {
-		if (( null == list ) || (0 == list.size()))
+	public NoteList getAbsoluteIntervalNotes() {
+		if (null == list)
 			return null;
-		NoteList intervals = new NoteList( this );
-		int adjustment = -this.get(0).getAbsoluteValue();
-		intervals.updateRelative( adjustment );
+		NoteList intervals = new NoteList();
+		Note first = null;
+		for (int i = 0; i < list.size(); i++) {
+			if ( 0 == i ) 
+				first = list.get(i);
+			intervals.add( new Note( first ).plus( list.get(i).getAbsoluteValue() - first.getAbsoluteValue()) );
+		}
+		return intervals;
+	}
+	
+	/** Get all note intervals relative to the first note. */
+	public int[] getAbsoluteIntervals() {
+		if (null == list)
+			return null;
+		int [] intervals = new int[list.size()];
+		int first = 0;
+		for (int i = 0; i < list.size(); i++) {
+			if ( 0 == i )
+				first = list.get(i).getAbsoluteValue();
+			intervals[ i ] = list.get(i).getAbsoluteValue() - first;
+		}
 		return intervals;
 	}
 	

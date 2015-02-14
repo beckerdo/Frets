@@ -20,23 +20,23 @@ public class Note implements Comparable<Note>{
 	// Piano C0 is about 17Hz, E10 is about 20kHz.
 	// Guitar low E is about 82 Hz (==E2 piano), highE (12th fret 1st string) is about 659Hz (==E5 on piano).
 	public enum Name {
-		C( "C", "n", 0 ),
-		Cs( "C", "#", 1 ),
-		Db( "D", "b", 1 ),
-		D( "D", "n", 2 ),
-		Ds( "D", "#", 3 ),
-		Eb( "E", "b", 3 ),
-		E( "E", "n", 4 ),
-		F( "F", "n", 5 ),
-		Fs( "F", "#", 6 ),
-		Gb( "G", "b", 6 ),
-		G( "G", "n", 7 ),
-		Gs( "G", "#", 8 ),
-		Ab( "A", "b", 8 ),
-		A( "A", "n", 9 ),
-		As( "A", "#", 10 ),
-		Bb( "B", "b", 10 ),
-		B( "B", "n", 11 );
+		C( "C", "n", 3 ),
+		Cs( "C", "#", 4 ),
+		Db( "D", "b", 4 ),
+		D( "D", "n", 5 ),
+		Ds( "D", "#", 6 ),
+		Eb( "E", "b", 6 ),
+		E( "E", "n", 7 ),
+		F( "F", "n", 8 ),
+		Fs( "F", "#", 9 ),
+		Gb( "G", "b", 9 ),
+		G( "G", "n", 10 ),
+		Gs( "G", "#", 11 ),
+		Ab( "A", "b", 11 ),
+		A( "A", "n", 0 ),
+		As( "A", "#",  1 ),
+		Bb( "B", "b",  1 ),
+		B( "B", "n",  2 );
 		private Name(String baseName,String accidental, int value ) {
 	    	this.baseName = baseName;
 	        this.accidental = accidental;
@@ -65,20 +65,20 @@ public class Note implements Comparable<Note>{
 		public static Name getName( int value ){
 			int normalValue = value % 12;
 			switch( normalValue ) {
-			case 0 : return C;
-			case 1 : return Cs;
-			case 2 : return D;
-			case 3 : return Ds;
-			case 4 : return E;
-			case 5 : return F;
-			case 6 : return Fs;
-			case 7 : return G;
-			case 8 : return Gs;
-			case 9 : return A;
-			case 10 : return As;
-			case 11 : return B;
+			case 0 : return A;
+			case 1 : return As;
+			case 2 : return B;
+			case 3 : return C;
+			case 4 : return Cs;
+			case 5 : return D;
+			case 6 : return Ds;
+			case 7 : return E;
+			case 8 : return F;
+			case 9 : return Fs;
+			case 10 : return G;
+			case 11 : return Gs;
 			}
-			return C;
+			throw new IllegalArgumentException( "Note value " + value + " out of range" );
 		}
 
 		private String baseName;		
@@ -134,7 +134,8 @@ public class Note implements Comparable<Note>{
 		if ( toString.length() < 1 )
 			throw new IllegalArgumentException( "Bad constructor string=\"" + toString + "\"" );
 		String valueString = toString.substring( 0, 1 ).toLowerCase();
-		this.value = "cXdXefXgXaXb".indexOf( valueString );
+		// this.value = "cXdXefXgXaXb".indexOf( valueString );
+		this.value = "aXbcXdXefXg".indexOf( valueString );
 		if ( value == -1 )
 			throw new IllegalArgumentException( "Bad note value=\"" + valueString + "\"" );
 		if ( toString.length() > 1 ) {

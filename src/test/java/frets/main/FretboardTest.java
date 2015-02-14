@@ -94,8 +94,13 @@ public class FretboardTest {
 		assertEquals("High string non-standard", new GuitarString(Note.GuitarHighE), highString);
 	}
 
+	/**
+	 * Note that the variation LocationList of any List position can be null or empty.
+	 * This often happen when one Fretboard with high and low notes gets moved to a smaller fretboard.
+	 * Thus you may see a List<LocationList> String that looks like "[]", "[, ]", or "[, , ]".  
+	 */
 	@Test
-	public void testVariations() {
+	public void testEmptyVariations() {
 		// No notes == no variations
 		List<LocationList> noVariations = standard.getEnharmonicVariations(null);
 		assertTrue("No variations", null == noVariations);
@@ -110,9 +115,9 @@ public class FretboardTest {
 		// System.out.println( "Empty variations count=" + numVariations );
 		assertTrue("Empty variation count", 0 == numVariations);
 
-		// No notes on fretboard (100 below and 100 above) == variations size 1 == variation.count of 0
+		// No notes on fretboard (100 below and 100 above) == variations size 2 == variation.count of 0
 		List<LocationList> noneOnFretboardVariations = standard.getEnharmonicVariations(
-			new NoteList(Note.minus(Note.GuitarLowE, -100),   Note.plus(Note.GuitarHighE,100)));
+			new NoteList(Note.minus(Note.GuitarLowE, -100), Note.plus(Note.GuitarHighE,100)));
 		// System.out.println( "Two note empty List<LocationList> string=" + noneOnFretboardVariations.toString()); // List prints ugly "[, ]"
 		// System.out.println( "None variations size=" + noneOnFretboardVariations.size());		
 		assertTrue("None variation size", 2 == noneOnFretboardVariations.size());
@@ -120,8 +125,25 @@ public class FretboardTest {
 		System.out.println( "None variations count=" + numNoneVariations );
 		assertTrue("None variation count", 0 == numNoneVariations);
 
-		
-		
+		// No notes on fretboard (100 below and 100 above) == variations size 3 == variation.count of 0
+		List<LocationList> noneOnFretboardVariations2 = standard.getEnharmonicVariations(
+			new NoteList(Note.minus(Note.GuitarLowE, -100), Note.plus(Note.GuitarHighE,100), Note.plus(Note.GuitarHighE,1000)));
+		// System.out.println( "Two note empty List<LocationList> string=" + noneOnFretboardVariations.toString()); // List prints ugly "[, ]"
+		// System.out.println( "None variations size=" + noneOnFretboardVariations.size());		
+		assertTrue("None variation size 2", 3 == noneOnFretboardVariations2.size());
+		numNoneVariations = Fretboard.getPermutationCount(noneOnFretboardVariations2);
+		System.out.println( "None variations count=" + numNoneVariations );
+		assertTrue("None variation count 2", 0 == numNoneVariations);
+
+	}
+
+	/**
+	 * Note that the variation LocationList of any List position can be null or empty.
+	 * This often happen when one Fretboard with high and low notes gets moved to a smaller fretboard.
+	 * Thus you may see a List<LocationList> String that looks like "[]", "[, ]", or "[, , ]".  
+	 */
+	@Test
+	public void testVariations() {
 		// Expected variations = 4 * x * 1 * 2 = 8
 		NoteList noteSet = new NoteList(Note.GuitarG, // 4 locations,
 				Note.plus(Note.GuitarHighE, 1001), // 0 locations
@@ -133,7 +155,7 @@ public class FretboardTest {
 		// System.out.println( "NoteList=" + noteSet + ", variations=" +
 		// variations );
 		assertTrue("NoteList variation size", 4 == variations.size());
-		numVariations = Fretboard.getPermutationCount(variations);
+		int numVariations = Fretboard.getPermutationCount(variations);
 		// System.out.println( "NoteList=" + noteSet + ", variation count=" +
 		// numVariations );
 		assertTrue("NoteList variation count", 8 == numVariations);
@@ -188,6 +210,11 @@ public class FretboardTest {
 
 	}
 
+	/**
+	 * Note that the variation LocationList of any List position can be null or empty.
+	 * This often happen when one Fretboard with high and low notes gets moved to a smaller fretboard.
+	 * Thus you may see a List<LocationList> String that looks like "[]", "[, ]", or "[, , ]".  
+	 */
 	@Test
 	public void testVariationStrings() {
 		NoteList noteSet = new NoteList(Note.GuitarG, // 4 locations,
@@ -802,4 +829,24 @@ public class FretboardTest {
 		}
 
 	}
+	
+	@Test
+	public void testSort() {
+		Fretboard bari = new Fretboard(
+				new GuitarString( Note.parse( "A3" )), 
+				new GuitarString( Note.parse( "F#3" )), 
+				new GuitarString( Note.parse( "B4" )), 
+				new GuitarString( Note.parse( "D3" )), 
+				new GuitarString( Note.parse( "B2" )), 
+				new GuitarString( Note.parse( "E2" )));
+		System.out.println( "Unsorted baritone strings=" + bari);
+		bari.sortStrings();
+		GuitarString prev = bari.getString( 0 );
+		for ( int i = 1; i < bari.getStringCount(); i++ ) {
+			GuitarString curr = bari.getString(i);
+			assertTrue( "Sort string compare " + i, prev.compareTo( curr ) < 0 );			
+		}
+		System.out.println( "Sorted baritone strings=" + bari);
+	}
+
 }

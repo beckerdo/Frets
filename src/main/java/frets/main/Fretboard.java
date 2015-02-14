@@ -328,7 +328,12 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 *                                                  [2,0]
 	 * 
 	 * Returns null if notes is null or this fretboard has no strings. 
-	 * includeOctave substitutes lower and higher notes of same value, different octave. */
+	 * includeOctave substitutes lower and higher notes of same value, different octave.
+	 * <p>
+	 * Note that the variation LocationList of any List position can be null or empty.
+	 * This often happen when one Fretboard with high and low notes gets moved to a smaller fretboard.
+	 * Thus you may see a List<LocationList> String that looks like "[]", "[, ]", or "[, , ]".  
+	 */
 	public List<LocationList> getVariations( final LocationList fixed, final NoteList variableNotes, int minFret, int maxFret, boolean includeOctaves ) {
 		if (( null == variableNotes ) || ( 0 == variableNotes.size() )) return null;
 		if (( null == strings ) || ( 0 == strings.size() )) return null;
