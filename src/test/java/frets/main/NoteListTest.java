@@ -221,37 +221,39 @@ public class NoteListTest {
 
 	@Test
 	public void testInversions() {
-		NoteList emInv = new NoteList(Note.E, Interval.m3, Interval.p5, Interval.r);
-		NoteList invAbsInt = emInv.getAbsoluteIntervalNotes();
-		int[] invRelInt = emInv.getRelativeIntervals();
+		NoteList emInv = new NoteList(Note.E, Interval.minorThird, Interval.perfectFifth, Interval.octave );
+		NoteList emInvAbsNotes = emInv.getAbsoluteIntervalNotes();
+		int[] emInvAbsInt = emInv.getAbsoluteIntervals();
+		int[] emInvRelInt = emInv.getRelativeIntervals();
 
-		System.out.println("Em 1stInv notes=" + emInv + ", absolute intervals=" + emInv.toStringIntervals()
-				+ ", relative intervals=" + emInv.toStringRelativeIntervals());
-		assertEquals("1st inv rel Minor Third", Interval.root.getValue(), invRelInt[0]);
-		assertEquals("1st inv rel Fifth", Interval.third.getValue(), invRelInt[1]);
-		assertEquals("1st inv rel Root", -Interval.fifth.getValue(), invRelInt[2]);
+		System.out.println("Em 1stInv notes=" + emInv +
+			", absolute notes=" + emInvAbsNotes +
+			", absolute intervals=" + emInv.toStringIntervals() +
+			", relative intervals=" + emInv.toStringRelativeIntervals());
+		assertEquals("1st inv rel Minor Third", Interval.root.getValue(), emInvRelInt[0]);
+		assertEquals("1st inv rel Fifth", Interval.third.getValue(), emInvRelInt[1]);
+		assertEquals("1st inv rel Octave", Interval.fourth.getValue(), emInvRelInt[2]);
 
-		System.out.println("Em 1stInv notes=" + invAbsInt + ", absolute intervals=" + invAbsInt.toStringIntervals()
-				+ ", relative intervals=" + invAbsInt.toStringRelativeIntervals());
-		assertEquals("1st inv abs Minor Third", Interval.root.getValue(), invAbsInt.get(0).getAbsoluteValue());
-		assertEquals("1st inv abs Fifth", Interval.third.getValue(), invAbsInt.get(1).getAbsoluteValue());
-		assertEquals("1st inv abs Root", -Interval.minorThird.getValue(), invAbsInt.get(2).getAbsoluteValue());
+		assertEquals("1st inv abs Minor Third", Interval.root.getValue(), emInvAbsInt[ 0 ]);
+		assertEquals("1st inv abs Fifth", Interval.third.getValue(), emInvAbsInt[ 1 ]);
+		assertEquals("1st inv abs Root", Interval.majorSixth.getValue(), emInvAbsInt[ 2 ]);
 
-		NoteList em2Inv = new NoteList(Note.E, Interval.p5, Interval.r, Interval.m3);
-		NoteList inv2AbsInt = em2Inv.getAbsoluteIntervalNotes();
-		int[] inv2RelInt = em2Inv.getRelativeIntervals();
+		NoteList em2Inv = new NoteList(Note.E, Interval.p5, Interval.octave, Interval.getInterval( Interval.octave.getValue() + Interval.minorThird.getValue()));
+		NoteList em2InvAbsNotes = em2Inv.getAbsoluteIntervalNotes();
+		int[] em2InvAbsInt = em2Inv.getAbsoluteIntervals();
+		int[] em2InvRelInt = em2Inv.getRelativeIntervals();
 
-		System.out.println("Em 2ndInv notes=" + em2Inv + ", absolute intervals=" + em2Inv.toStringIntervals()
-				+ ", relative intervals=" + em2Inv.toStringRelativeIntervals());
-		assertEquals("2nd inv rel Fifth", Interval.root.getValue(), inv2RelInt[0]);
-		assertEquals("2nd inv rel Root", -Interval.fifth.getValue(), inv2RelInt[1]);
-		assertEquals("2nd inv rel Flat Third", Interval.minorThird.getValue(), inv2RelInt[2]);
+		System.out.println("Em 2ndInv notes=" + em2Inv + 
+			", absolute notes=" + em2InvAbsNotes +
+			", absolute intervals=" + em2Inv.toStringIntervals() + 
+		    ", relative intervals=" + em2Inv.toStringRelativeIntervals());
+		assertEquals("2nd inv rel Fifth", Interval.root.getValue(), em2InvRelInt[0]);
+		assertEquals("2nd inv rel Root", Interval.perfectFourth.getValue(), em2InvRelInt[1]);
+		assertEquals("2nd inv rel Flat Third", Interval.minorThird.getValue(), em2InvRelInt[2]);
 
-		System.out.println("Em 2ndInv notes=" + inv2AbsInt + ", absolute intervals=" + inv2AbsInt.toStringIntervals()
-				+ ", relative intervals=" + inv2AbsInt.toStringRelativeIntervals());
-		assertEquals("2nd inv abs Fifth", Interval.root.getValue(), inv2AbsInt.get(0).getAbsoluteValue());
-		assertEquals("2nd inv abs Root", -Interval.fifth.getValue(), inv2AbsInt.get(1).getAbsoluteValue());
-		assertEquals("2nd inv abs Flat Third", -Interval.third.getValue(), inv2AbsInt.get(2).getAbsoluteValue());
+		assertEquals("2nd inv abs Fifth", Interval.root.getValue(), em2InvAbsInt[ 0 ]);
+		assertEquals("2nd inv abs Root", Interval.perfectFourth.getValue(), em2InvAbsInt[ 1 ]);
+		assertEquals("2nd inv abs Flat Third", Interval.minorSixth.getValue(), em2InvAbsInt[ 2 ]);
 	}
 
 	@Test
