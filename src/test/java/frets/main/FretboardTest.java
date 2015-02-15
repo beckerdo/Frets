@@ -8,11 +8,9 @@ import static org.junit.Assert.assertArrayEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 
 import static frets.main.Display.Orientation;
 import static frets.main.Display.Hand;
