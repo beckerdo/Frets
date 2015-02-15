@@ -1020,11 +1020,14 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 * @throws IOException
 	 */
 	public void populateFromFile( File resourceLocation, String shortName ) throws IOException {
-		int maxFret = 15;
-		int octaveFret = 12;
 		// Read properties file. 
 		Properties properties = new Properties();
+		Set<String> foundKeys = new HashSet<String>(); // Will check for missing or duplicate names.
 
+		// Some defaults for strings.
+		int maxFret = 15;
+		int octaveFret = 12;
+		
 		// Load properties
 		if ( null != resourceLocation ) {
 			// Relative to file system target for this app.
@@ -1038,48 +1041,60 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 			properties.load( is );			
 		}
 
-		// First load fret values
-		// Convert from properties to object
-		for ( Iterator<Object> it = properties.keySet().iterator(); it.hasNext(); ) {
-			String key = (String) it.next();
-			// System.out.println( "Property key=" + key + ", value=\"" + properties.getProperty( key ) + "\"" );
-			String value = properties.getProperty( key );
-			if ( "fretboard.maxFret".equals( key ) ) {
-				maxFret = Integer.parseInt( value );
-			} else if ( "fretboard.octaveFret".equals( key ) ) {
-				octaveFret = Integer.parseInt( value );
-			} else if ( "fretboard.name".equals( key ) ) {
-				this.metaName = value;
-			} else if ( "fretboard.description".equals( key ) ) {
-				this.metaDescription = value;
-			} else if ( key.startsWith("guitarString.openNote" )) {
-			} else {
-				throw new IllegalArgumentException( "Key \"" + key + "\" not handled, value=\"" + value + "\"" );
-			} 
+		// First load common fret values
+		String requiredKey = "fretboard.name";
+		this.metaName = properties.getProperty( requiredKey );
+		foundKeys.add( requiredKey );
+		requiredKey = "fretboard.description";
+		this.metaDescription = properties.getProperty( requiredKey );
+		foundKeys.add( requiredKey );
+		String optionalKey = "fretboard.maxFret";
+		if ( properties.containsKey( optionalKey ) ) {
+			maxFret = Integer.parseInt( properties.getProperty( optionalKey ));
+			foundKeys.add( optionalKey );
+		}
+		optionalKey = "fretboard.octaveFret";
+		if ( properties.containsKey( optionalKey ) ) {
+			octaveFret = Integer.parseInt( properties.getProperty( optionalKey ));
+			foundKeys.add( optionalKey );
 		}
 		
-		// Second load string values
-		// Convert from properties to Display bean
-		for ( Iterator<Object> it = properties.keySet().iterator(); it.hasNext(); ) {
-			String key = (String) it.next();
-			// System.out.println( "Property key=" + key + ", value=\"" + properties.getProperty( key ) + "\"" );
-			String value = properties.getProperty( key );
-			if ( "fretboard.maxFret".equals( key ) ) {
-			} else if ( "fretboard.octaveFret".equals( key ) ) {
-			} else if ( key.startsWith("guitarString.openNote" )) {
-				// String indexString = key.substring( key.lastIndexOf("." ) + 1 );
-				// int stringNum = Integer.parseInt( indexString );
-				// System.out.println( "Key=" + key +", num=" + stringNum );
+		// Load string values in order.
+		String stringPrefix = "guitarString.openNote.";
+		// Try to load max strings. Will complain later if more are missed.
+		int STRING_MAX = 12;
+		boolean [] foundString = new boolean [ STRING_MAX ]; // Will check for gaps.
+		for ( int i = 0; i < STRING_MAX; i++ ) {
+			foundString[ i ] = false;
+			String key = stringPrefix + i;
+			if ( properties.containsKey( key ) ) {
+				String value = properties.getProperty( key );
 				Note openNote = Note.parse( value );
 				GuitarString guitarString = new GuitarString(openNote, octaveFret, maxFret);
 				this.add( guitarString );
-			} else if ( "fretboard.name".equals( key ) ) {
-			} else if ( "fretboard.description".equals( key ) ) {
-			} else {
-				throw new IllegalArgumentException( "Key \"" + key + "\" not handled, value=\"" + value + "\"" );
-			} 
+				foundKeys.add( key );
+				foundString[ i ] = true;
+			}
 		}
-		this.sortStrings();
+
+		// Check for missed or duplicate keys. 
+		for ( Iterator<Object> it = properties.keySet().iterator(); it.hasNext(); ) {
+			String key = (String) it.next();
+			if ( !foundKeys.contains( key ) )
+				System.err.println( "WARNING: key \"" + key + "\" in property file " + shortName + " was not used." );
+		}
+		
+		// Check for skipped strings.
+		for ( int i = 0; i < STRING_MAX; i++ ) {
+			if ( !foundString[ i ] ) {
+				if ( i + 1 < STRING_MAX ) {
+					if ( foundString[ i + 1 ] ) 
+						System.err.println( "WARNING: It appears string " + i + " in property file " + shortName + " was skipped." );
+				}
+			}
+		}
+		
+		// this.sortStrings(); // Do not sort. This will be bad for ukeleles and other reentrant tunings.
 	}
 	
 	protected GuitarString lowString = null;

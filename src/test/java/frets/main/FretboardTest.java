@@ -849,4 +849,22 @@ public class FretboardTest {
 		System.out.println( "Sorted baritone strings=" + bari);
 	}
 
+	@Test
+	public void testUkelele() {
+		// Test that reentrant (out of order) strings are preserved.	
+		String shortName = "fretboard.ukeleleSoprano.properties";
+		Fretboard uke = Fretboard.getInstanceFromFileName(shortName);
+
+		// This will test that the crazy order of ukelele strings is in order.
+		Fretboard expected= new Fretboard(
+				new GuitarString( Note.parse( "G4" )), 
+				new GuitarString( Note.parse( "C4" )), 
+				new GuitarString( Note.parse( "E4" )), 
+				new GuitarString( Note.parse( "A4" )));
+		
+		for ( int i = 0; i < expected.getStringCount(); i++ ) {
+			GuitarString eString = expected.getString(i);
+			assertEquals( "Ukelele string " + i, eString, uke.getString( i ) );			
+		}
+	}
 }
