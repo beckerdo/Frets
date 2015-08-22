@@ -109,7 +109,7 @@ public class FretboardTest {
 		// System.out.println( "One note empty List<LocationList> string=" + emptyVariations.toString()); // List prints "[]"
 		// System.out.println( "Empty variations size=" + emptyVariations.size());
 		assertTrue("Empty variation size", 1 == emptyVariations.size());
-		int numVariations = Fretboard.getPermutationCount(emptyVariations);
+		long numVariations = Fretboard.getPermutationCount(emptyVariations);
 		// System.out.println( "Empty variations count=" + numVariations );
 		assertTrue("Empty variation count", 0 == numVariations);
 
@@ -119,7 +119,7 @@ public class FretboardTest {
 		// System.out.println( "Two note empty List<LocationList> string=" + noneOnFretboardVariations.toString()); // List prints ugly "[, ]"
 		// System.out.println( "None variations size=" + noneOnFretboardVariations.size());		
 		assertTrue("None variation size", 2 == noneOnFretboardVariations.size());
-		int numNoneVariations = Fretboard.getPermutationCount(noneOnFretboardVariations);
+		long numNoneVariations = Fretboard.getPermutationCount(noneOnFretboardVariations);
 		System.out.println( "None variations count=" + numNoneVariations );
 		assertTrue("None variation count", 0 == numNoneVariations);
 
@@ -153,7 +153,7 @@ public class FretboardTest {
 		// System.out.println( "NoteList=" + noteSet + ", variations=" +
 		// variations );
 		assertTrue("NoteList variation size", 4 == variations.size());
-		int numVariations = Fretboard.getPermutationCount(variations);
+		long numVariations = Fretboard.getPermutationCount(variations);
 		// System.out.println( "NoteList=" + noteSet + ", variation count=" +
 		// numVariations );
 		assertTrue("NoteList variation count", 8 == numVariations);
@@ -222,7 +222,7 @@ public class FretboardTest {
 		System.out.println("NoteList=" + noteSet + ", variations=" + variations);
 		int digits = variations.size(); // 4 * 4 * 4
 		assertEquals("NoteList variation digits", 3, digits);
-		int numVariations = Fretboard.getPermutationCount(variations);
+		long numVariations = Fretboard.getPermutationCount(variations);
 		// System.out.println( "NoteList=" + noteSet + ", variation count=" +
 		// numVariations );
 		assertEquals("NoteList variation count", 64, numVariations);
@@ -268,7 +268,7 @@ public class FretboardTest {
 		);
 
 		List<LocationList> variations = standard.getEnharmonicVariations(noteSet);
-		int numVariations = Fretboard.getPermutationCount(variations);
+		long numVariations = Fretboard.getPermutationCount(variations);
 		System.out.println("NoteList=" + noteSet + ", variations=" + numVariations);
 		System.out.println("NoteList=" + noteSet + ", variations=" + variations);
 		assertEquals("NoteList variation count", 3, numVariations);

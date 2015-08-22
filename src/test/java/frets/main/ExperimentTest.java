@@ -91,7 +91,7 @@ public class ExperimentTest
     	List<LocationList> noteListVars = standard.getVariations( noteList, includeOctaves );
     	ChordRank ranker = ChordRank.instance.getInstance( ChordRank.STANDARD  );
     	List<LocationList> sortedVars = Fretboard.explodeAndSort( noteListVars, ranker );
-		int varCount = Fretboard.getPermutationCount( noteListVars );
+		long varCount = Fretboard.getPermutationCount( noteListVars );
 
 		Display displayOpts = Display.instance.getInstance( Display.HORIZONTAL_NAME );
 		displayOpts.infoType = Display.InfoType.INTERVAL;

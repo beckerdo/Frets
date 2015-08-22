@@ -131,7 +131,7 @@ public class LocationListTest
     			Note.plus( Note.GuitarA, Interval.wholehalf )
         	);
        	List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations( cRootsPos0 );
-       	int varCount = Fretboard.getPermutationCount( cRootsPos0Vars );
+       	long varCount = Fretboard.getPermutationCount( cRootsPos0Vars );
     	// System.out.println( "Sorted C root location list variations=" + varCount );
     	assertTrue("Sorted list count", varCount == 10 );
        	
@@ -347,7 +347,7 @@ public class LocationListTest
     	// ChordRank ranker = new ChordRank( 0, 12, 5, 10 );
     	ChordRank ranker = ChordRank.instance.getInstance( ChordRank.STANDARD );    	
     	List<LocationList> sortedVars = Fretboard.explodeAndSort( d7Vars, ranker );
-		int varCount = Fretboard.getPermutationCount( d7Vars );
+		long varCount = Fretboard.getPermutationCount( d7Vars );
 
     	Display displayOpts = new Display();
     	displayOpts.infoType = Display.InfoType.NAME;
@@ -413,7 +413,7 @@ public class LocationListTest
     	List<LocationList> d7Vars = standard.getOctaveVariations( d7 );
     	ChordRank ranker = new ChordRank( 0, 12, 5, 10 );
     	List<LocationList> sortedVars = Fretboard.explodeAndSort( d7Vars, ranker );
-		int varCount = Fretboard.getPermutationCount( d7Vars );
+		long varCount = Fretboard.getPermutationCount( d7Vars );
 
     	Display displayOpts = new Display();
     	displayOpts.infoType = Display.InfoType.NAME;
@@ -471,7 +471,7 @@ public class LocationListTest
     	
     	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD ); 
     	List<LocationList> fminVars = standard.getVariations( fmin, Fretboard.ENHARMONICS );
-		int varCount = Fretboard.getPermutationCount( fminVars );
+		long varCount = Fretboard.getPermutationCount( fminVars );
 
 		// There are 6 variations of fmin starting from lowF. 
 		//   0 [[0,1], [0,4], [0,8], [0,11]]
@@ -499,7 +499,7 @@ public class LocationListTest
     	
     	Fretboard standard = Fretboard.getInstanceFromName( Fretboard.STANDARD );   	 
     	List<LocationList> fminVars = standard.getVariations( fmin, Fretboard.OCTAVES );
-		int varCount = Fretboard.getPermutationCount( fminVars );
+		long varCount = Fretboard.getPermutationCount( fminVars );
 		System.out.println( "Formula test permutation count=" + varCount );
    	    assertEquals( "Formula inversion permutation count", 13310, varCount );
 		
@@ -601,7 +601,7 @@ public class LocationListTest
 		LocationList barreG = LocationList.parseString( "0+3,1+5,2+5,3+4,4+5,5+3" );
 		
     	List<LocationList> Gadd9 = standard.getVariations( barreG, new NoteList( Note.parse( "B3") ), 0, standard.getMaxFret(), Fretboard.ENHARMONICS );
-		int varCount = Fretboard.getPermutationCount( Gadd9 );
+		long varCount = Fretboard.getPermutationCount( Gadd9 );
 		System.out.println( "Gadd9 permutations count=" + varCount );
 
 		Note lowG = Note.plus( Note.GuitarLowE, 3 );

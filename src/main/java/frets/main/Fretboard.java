@@ -388,7 +388,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 * Use size and get for location lists. 
 	 * */
 	public static List<LocationList> explodeAndSort( final List<LocationList> variations, final ChordRank ranker ) {
-		int varCount = Fretboard.getPermutationCount( variations );
+		long varCount = Fretboard.getPermutationCount( variations );
     	List<LocationList> sortedVars = new LinkedList<LocationList>();
     	for( int i = 0; i < varCount; i ++ ) {
     		sortedVars.add( Fretboard.getPermutation( variations, i ));
@@ -399,11 +399,12 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 
 	/** Returns a count of all variations. 
 	 * The count is the total permutations of all the enharmonic and octave locations in the list.
+	 * int blows up with > 2billion, (about 17 locations with variations)
 	 */
-	public static int getPermutationCount( final List<LocationList> variations  ) {
+	public static long getPermutationCount( final List<LocationList> variations  ) {
 		if (( null == variations ) || ( 0 == variations.size() )) return 0;
 		
-		int count = 0;
+		long count = 0;
 		for ( int variationi = 0; variationi < variations.size(); variationi++ ) {
 			LocationList variation = variations.get( variationi );
 
@@ -421,10 +422,10 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	/** Returns one of all variations. 
 	 * The returned list is one of the possible permutations of all the enharmonic and octave locations in the list.
 	 */
-	public static LocationList getPermutation( final List<LocationList> variations, int variationi  ) {
+	public static LocationList getPermutation( final List<LocationList> variations, long variationi  ) {
 		if (( null == variations ) || ( 0 == variations.size() )) return null;
 		if ( 0 > variationi ) return null;
-		int numVariations = getPermutationCount( variations );
+		long numVariations = getPermutationCount( variations );
 		if ( variationi >= numVariations ) return null;
 				
 		LocationList locations = new LocationList();
@@ -433,7 +434,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		for ( int listi = 0; listi < variations.size(); listi++ ) {
 			LocationList variation = variations.get( listi );
 			if (( null != variation ) && ( 0 < variation.size() )) {
-			   locations.add( 0, variation.get( variationi % variation.size() ) );
+			   locations.add( 0, variation.get( (int) variationi % variation.size() ) );
 			   variationi /= variation.size();
 			}			
 		}		
@@ -458,25 +459,25 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 *    variationi == 6 ==> "6/6 (012/123)"  
 	 * FYI, this notation might breakdown with more than 10 locations on a large fretboard.
 	 */
-	public static String getPermutationString( final List<LocationList> variations, int variationi  ) {
+	public static String getPermutationString( final List<LocationList> variations, long variationi  ) {
 		String INVALID = "ø";
 		if (( null == variations ) || ( 0 == variations.size() )) return INVALID;
 		if ( 0 > variationi ) return INVALID + "(" + variationi + ")";
 		
-		int numVariations = getPermutationCount( variations );
+		long numVariations = getPermutationCount( variations );
 		if ( variationi >= numVariations ) return INVALID + "(" + variationi + "/" + numVariations + ")";
 				
 		// Choose one location variation from each list.
 		// for ( int listi = variations.size() - 1; listi >= 0; listi-- ) {
 		StringBuffer binaryVar = new StringBuffer();
 		StringBuffer binaryTot = new StringBuffer();
-		int remainder = variationi;
+		long remainder = variationi;
 		for ( int listi = 0; listi < variations.size(); listi++ ) {
 			LocationList variation = variations.get( listi );
 			if ( null != variation ) {				
 				int digitSize = variation.size();
 				if ( 0 < digitSize ) {
-				   int digit = remainder % digitSize;
+				   long digit = remainder % digitSize;
 				   binaryVar.insert( 0, digit ); // prepend				   
    			       remainder /= digitSize;
 				} else
@@ -484,7 +485,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	    		binaryTot.insert( 0, digitSize ); // prepend
 			}			
 		}
-		String varString = Integer.toString( variationi ) + "/" + Integer.toString( numVariations )
+		String varString = Long.toString( variationi ) + "/" + Long.toString( numVariations )
 		   + " ("  + binaryVar.toString() + "/" + binaryTot.toString() + ")";
 		return varString;
 	}
@@ -624,7 +625,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 */
 	public String toStringHori( final NoteList notes, int lowFret, int highFret, final Display displayOpts ) {
 		List<LocationList> variations = this.getEnharmonicVariations( notes );
-		int variationCount = Fretboard.getPermutationCount( variations );
+		long variationCount = Fretboard.getPermutationCount( variations );
 		if ( variationCount == 0 ) {			
 			throw new IllegalArgumentException( "StringHori detects " + variationCount + " variations.");
 		} else if (variationCount > 1 ) {
@@ -754,7 +755,7 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 */
 	public String toStringVert( final NoteList notes, int lowFret, int highFret, final Display displayOpts ) {
 		List<LocationList> variations = this.getEnharmonicVariations( notes );
-		int variationCount = Fretboard.getPermutationCount( variations );
+		long variationCount = Fretboard.getPermutationCount( variations );
 		if ( variationCount == 0 ) {			
 			throw new IllegalArgumentException( "StringVert detects " + variationCount + " variations." );
 		} else if (variationCount > 1 ) {
