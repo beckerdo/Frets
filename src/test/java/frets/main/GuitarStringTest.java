@@ -35,8 +35,8 @@ public class GuitarStringTest
     {
     	GuitarString test = new GuitarString( Note.E );
         assertEquals("Open note", Note.E, test.getOpenNote() );        	
-        assertTrue("Octave fret", 12 == test.getOctaveFret() );        	
-        assertTrue("Max fret", 18 == test.getMaxFret() );        	
+        assertTrue("Octave fret", Fretboard.DEFAULT_OCTAVEFRET == test.getOctaveFret() );        	
+        assertTrue("Max fret", Fretboard.DEFAULT_MAXFRET == test.getMaxFret() );        	
 
         int maxFret = 20;
         Note highNote = (new GuitarString( Note.E, 12, maxFret )).getHighNote();

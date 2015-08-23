@@ -61,6 +61,9 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 
 	public static final String PROP_PATH = "frets/main/fretboards/";
 	public static final String ALL_FRETBOARD_PROPS = "fretboard[.].*[.]properties";
+
+	public static final int DEFAULT_OCTAVEFRET = 12;
+	public static final int DEFAULT_MAXFRET = 24;
 	
 	public Fretboard( final List<GuitarString> strings) {
 		setStrings( strings );	
@@ -400,27 +403,39 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	/** Returns a count of all variations. 
 	 * The count is the total permutations of all the enharmonic and octave locations in the list.
 	 * int blows up with > 2billion, (about 17 locations with variations)
+	 * <p>
+	 * Also see {@link getPermutationNumber} which returns the variation number of a given location list.
+	 * Also see {@link getPermutation} which returns the location list of a given variation number.
 	 */
 	public static long getPermutationCount( final List<LocationList> variations  ) {
 		if (( null == variations ) || ( 0 == variations.size() )) return 0;
 		
 		long count = 0;
 		for ( int variationi = 0; variationi < variations.size(); variationi++ ) {
-			LocationList variation = variations.get( variationi );
+			LocationList enharmonics = variations.get( variationi );
 
 			if ( count == 0 ) {
-				if (( null != variation ) && ( 0 < variation.size() ))
-					count = variation.size();
+				if (( null != enharmonics ) && ( 0 < enharmonics.size() ))
+					count = enharmonics.size();
 			} else {
-				if (( null != variation ) && ( 0 < variation.size() ))
-					count *= variation.size();				
+				if (( null != enharmonics ) && ( 0 < enharmonics.size() ))
+					count *= enharmonics.size();				
 			}
 		}
 		return count;
 	}
 	
-	/** Returns one of all variations. 
-	 * The returned list is one of the possible permutations of all the enharmonic and octave locations in the list.
+	/** 
+	 * Given a list of enharmonic notes, return the LocationList of variationi, one of the permutations.
+	 * For example, let variations be a list of enharmonic locations for notes C3,D3.
+	 * Variations[0] contains the LocationList for C3: 0-8, 1-2.
+	 * Variations[1] contains the LocationList for D3: 0-10,1-5,2-0
+	 * getPermutation( variations, 0 ) returns permutation 0: 0-8,0-10
+	 * getPermutation( variations, 1 ) returns permutation 1: 0-8,1-5
+	 * getPermutation( variations, 2 ) returns permutation 2: 0-8,2-0
+	 * <p>
+	 * Also see {@link getPermutationCount} which returns the total number of variations.
+	 * The inverse of this is {@link getPermutationNumber} which returns the variation number of a given location list.
 	 */
 	public static LocationList getPermutation( final List<LocationList> variations, long variationi  ) {
 		if (( null == variations ) || ( 0 == variations.size() )) return null;
@@ -432,17 +447,55 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		// Choose one location variation from each list.
 		// for ( int listi = variations.size() - 1; listi >= 0; listi-- ) {
 		for ( int listi = 0; listi < variations.size(); listi++ ) {
-			LocationList variation = variations.get( listi );
-			if (( null != variation ) && ( 0 < variation.size() )) {
-			   locations.add( 0, variation.get( (int) variationi % variation.size() ) );
-			   variationi /= variation.size();
+			LocationList enharmonics = variations.get( listi );
+			// System.out.println( "Enharmonics " + listi + "=" + enharmonics );
+			if (( null != enharmonics ) && ( 0 < enharmonics.size() )) {
+			   locations.add( 0, enharmonics.get( (int) (variationi % (long) enharmonics.size()) ) );
+			   variationi /= (long) enharmonics.size();
 			}			
 		}		
 		return locations;
 	}
 
 	/** 
-	 * Given a location list with variations, for example: 
+	 * Given a list of enharmonic notes, return the permutation number of the given locations
+	 * For example, let variations be a list of enharmonic locations for notes C3,D3.
+	 * Variations[0] contains the LocationList for C3: 0-8, 1-2.
+	 * Variations[1] contains the LocationList for D3: 0-10,1-5,2-0
+	 * getPermutationNumber( variations, [0-8,0-10] ) returns permutation number 0
+	 * getPermutationNumber( variations, [0-8,1-5] ) returns permutation number 1
+	 * getPermutationNumber( variations, [0-8,2-0] ) returns permutation 2
+	 * <p>
+	 * The number -1 is returns for null lists, empty lists, or locations not in the enharmonic list.
+	 * <p>
+	 * Also see {@link getPermutationCount} which returns the total number of variations.
+	 * The inverse of this is {@link getPermutation} which returns the location list of a given variation number.
+	 */
+	public static long getPermutationNumber( final List<LocationList> variations, final LocationList locations ) {
+		if ( null == variations || variations.size() < 1 ) return -1;
+		if ( null == locations || locations.size() < 1 || locations.size() != variations.size() ) return -1;
+		long permutation = 0;
+		for ( int i = 0; i < locations.size(); i++ ) {
+			Location location = locations.get( i );
+			// System.out.println( "Location " + i + "=" + location );
+			LocationList enharmonics = variations.get( locations.size() - 1 - i );
+			// System.out.print( "   Enharmonics " + i + "=" + enharmonics );
+			
+			int indexOf = enharmonics.indexOf( location );
+			if ( -1 != indexOf ) {
+				permutation *= (long) enharmonics.size();
+				permutation += (long) indexOf;
+				// System.out.println( " indexOf " + location + "=" + indexOf + ", permutation=" + permutation );				
+			} else {
+				System.out.println( "Did not find location " + location + " in list " + enharmonics );
+				return -1;
+			}
+		}
+		return permutation;
+	}
+
+	/** 
+	 * Given a location list with enharmonic variations, for example: 
 	 * <pre>
 	 *    note >       G2,       A2,         D3
 	 *    element >    0,        1,          2
@@ -473,9 +526,10 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 		StringBuffer binaryTot = new StringBuffer();
 		long remainder = variationi;
 		for ( int listi = 0; listi < variations.size(); listi++ ) {
-			LocationList variation = variations.get( listi );
-			if ( null != variation ) {				
-				int digitSize = variation.size();
+			LocationList enharmonics = variations.get( listi );
+			// System.out.println( "Enharmonic " + listi + "=" + enharmonics );
+			if ( null != enharmonics ) {				
+				long digitSize = enharmonics.size();
 				if ( 0 < digitSize ) {
 				   long digit = remainder % digitSize;
 				   binaryVar.insert( 0, digit ); // prepend				   
@@ -505,25 +559,24 @@ public class Fretboard implements List<GuitarString>, SimpleProperties<Fretboard
 	 *    note 2 variation n (3)
 	 * FYI, this notation might breakdown with more than 10 locations on a large fretboard.
 	 */
-	public static int [] getPermutationValues( String permutationString ) {
+	public static long [] getPermutationValues( String permutationString ) {
 		if (null == permutationString) return null;
 		String delims = "[() /]+";
 	    String [] tokens = permutationString.split( delims );
 	    if (( null == tokens ) || ( tokens.length < 2))
 	       return null;
 	    if ( tokens.length == 2 )
-	       return new int [] { Integer.parseInt( tokens[ 0 ] ), Integer.parseInt( tokens[ 1 ] ),  0 };
+	       return new long [] { Long.parseLong( tokens[ 0 ] ), Long.parseLong( tokens[ 1 ] ),  0 };
 	    if ( tokens.length == 4 ) {
-	    	int noteCount = tokens[ 2 ].length();
- 	        int [] vals = new int [ 3 + 2 * noteCount ];
- 	        vals[ 0 ] = Integer.parseInt( tokens[ 0 ] );
- 	        vals[ 1 ] = Integer.parseInt( tokens[ 1 ] );
+	    	long noteCount = tokens[ 2 ].length();
+ 	        long [] vals = new long[ 3 + 2 * (int)noteCount ];
+ 	        vals[ 0 ] = Long.parseLong( tokens[ 0 ] );
+ 	        vals[ 1 ] = Long.parseLong( tokens[ 1 ] );
  	        vals[ 2 ] = noteCount;
  	        for ( int i = 0; i < noteCount; i++ ) {
- 	        	int vali = 3 + i*2;
- 	        	
- 	        	vals[ vali ] = Integer.parseInt( tokens[ 2 ].substring( i, i+1 )); // note i, variation i, variation N
- 	        	vals[ vali + 1 ] = Integer.parseInt( tokens[ 3 ].substring( i, i+1 ));
+ 	        	int vali = 3 + i*2; 	        	
+ 	        	vals[ vali ] = Long.parseLong( tokens[ 2 ].substring( i, i+1 )); // note i, variation i, variation N
+ 	        	vals[ vali + 1 ] = Long.parseLong( tokens[ 3 ].substring( i, i+1 ));
  	        }
  	        return vals;
 	    }

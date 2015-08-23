@@ -20,7 +20,7 @@ public class GuitarString implements Comparable<GuitarString> {
 	public static final int NOFRET = -1;
 	
 	public GuitarString(Note openNote ) {
-		this( openNote, null, 12, 18 );
+		this( openNote, null, Fretboard.DEFAULT_OCTAVEFRET, Fretboard.DEFAULT_MAXFRET );
 	}
 	
 	public GuitarString(Note openNote, int octaveFret, int maxFret) {

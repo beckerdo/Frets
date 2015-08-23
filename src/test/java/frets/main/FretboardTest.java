@@ -17,6 +17,8 @@ import static frets.main.Display.Hand;
 
 /**
  * Unit tests to validate this class.
+ * Tests fretboard features.
+ * For character graphics tests, see FretboardCharGraphicTest.
  * 
  * @author <a href="mailto:dan@danbecker.info">Dan Becker</a>
  */
@@ -70,28 +72,6 @@ public class FretboardTest {
 		assertTrue("Empty", test.isEmpty());
 	}
 
-	@Test
-	public void testLowHigh() {
-		GuitarString lowString = standard.getLowString();
-		assertEquals("Low string standard", new GuitarString(Note.GuitarLowE), lowString);
-		GuitarString highString = standard.getHighString();
-		assertEquals("High string standard", new GuitarString(Note.GuitarHighE), highString);
-
-		Fretboard crazy = new Fretboard(
-			new GuitarString(Note.GuitarD), 
-			new GuitarString(Note.GuitarHighE),
-			new GuitarString(Note.GuitarA), 
-			new GuitarString(Note.GuitarLowE), 
-			new GuitarString(Note.GuitarHighE),
-			new GuitarString(Note.GuitarG), 
-			new GuitarString(Note.GuitarLowE), 
-			new GuitarString(Note.GuitarB));
-		lowString = crazy.getLowString();
-		assertEquals("Low string non-standard", new GuitarString(Note.GuitarLowE), lowString);
-		highString = crazy.getHighString();
-		assertEquals("High string non-standard", new GuitarString(Note.GuitarHighE), highString);
-	}
-
 	/**
 	 * Note that the variation LocationList of any List position can be null or empty.
 	 * This often happen when one Fretboard with high and low notes gets moved to a smaller fretboard.
@@ -141,7 +121,7 @@ public class FretboardTest {
 	 * Thus you may see a List<LocationList> String that looks like "[]", "[, ]", or "[, , ]".  
 	 */
 	@Test
-	public void testVariations() {
+	public void testPermutations() {
 		// Expected variations = 4 * x * 1 * 2 = 8
 		NoteList noteSet = new NoteList(Note.GuitarG, // 4 locations,
 				Note.plus(Note.GuitarHighE, 1001), // 0 locations
@@ -205,64 +185,144 @@ public class FretboardTest {
 		// System.out.println( "NoteList=" + noteSet + ", variation count=" +
 		// numVariations );
 		assertTrue("NoteList variation count", 4 == numVariations);
-
 	}
 
+	@Test
+	public void testPermutationNumber() {
+		NoteList noteSet = new NoteList(Note.GuitarG, // 4 locations,
+				Note.plus(Note.GuitarG, Interval.fourth), Note.plus(Note.GuitarG, Interval.fifth));
+
+		// Test some happy paths
+		List<LocationList> variations = standard.getEnharmonicVariations(noteSet);
+		System.out.println("NoteList=" + noteSet + ", variations=" + variations);
+		int digits = variations.size(); // 4 * 5 * 5
+		assertEquals("NoteList variation digits", 3, digits);
+		long permutations = Fretboard.getPermutationCount(variations);
+		System.out.println( "NoteList=" + noteSet + ", variation count=" + permutations );
+		assertEquals("NoteList variation count", 100, permutations);
+		
+		for ( long permi = 0; permi < permutations; permi++ ) {
+			LocationList locations = Fretboard.getPermutation( variations, permi );
+			// System.out.println( "LocationList variation " + permi + "=" + locations );
+			assertEquals("LocationList variation " + permi, permi, Fretboard.getPermutationNumber( variations, locations ) );
+		}
+
+		// Test some nulls
+		assertEquals("Null variations", -1 , Fretboard.getPermutationNumber( null, Fretboard.getPermutation( variations, 0 ) ) );
+		assertEquals("Null variations", -1 , Fretboard.getPermutationNumber( variations, null ) );		
+	}
+	
+	/**
+	 * Test large sets of note/permutations to see that things don't blow up.
+	 * As data, this uses the C major scale, the shape 1E, which ranges from
+	 * B3 to D5.
+	 */
+	@Test
+	public void testPermutationLongs() {
+		NoteList notes = NoteList.parse(
+			"C3,D3,E3,F3,G3,A4,B4," +
+			"C4,D4,E4,F4,G4,A5,B5," +
+			"C5"
+		);
+		
+		// System.out.println( "CMaj first note=" + notes.get( 0 ) + ",last note=" + notes.get(notes.size()-1) + ",length=" + notes.size());
+        List<LocationList> variations = standard.getEnharmonicVariations( notes );
+	    long permutations = Fretboard.getPermutationCount( variations );
+        // System.out.println( "FretboardTest.testLargePermutations variations=" + variations.size() + ", permutations=" + permutations);
+
+        long expectedPermutations = 4 * 4 * 4 * 
+        		5 * 5 * 5 * 5 * 5 * 5 *
+        		4 * 4 * 3 * 3 * 3 * 2;
+		// System.out.println("NoteList=" + notes + "\n   variations=" + variations);        
+		assertEquals("Permutation count 15", expectedPermutations, permutations);
+		
+		notes.add( 0, Note.parse( "B3" ));
+		notes.add( Note.parse( "D5" ));
+
+		System.out.println( "CMaj first note=" + notes.get( 0 ) + ",last note=" + notes.get(notes.size()-1) + ",length=" + notes.size());
+        variations = standard.getEnharmonicVariations( notes );
+	    permutations = Fretboard.getPermutationCount( variations );
+        System.out.println( "FretboardTest.testLargePermutations variations=" + variations.size() + ", permutations=" + permutations);
+		// System.out.println("NoteList=" + notes + "\n   variations=" + variations);
+		expectedPermutations *= 2 * 3;
+		assertEquals("Permutation count 17", expectedPermutations, permutations);
+		assertTrue("Testing long territory", permutations > Integer.MAX_VALUE );
+		
+		// Get first and last permutations
+//		LocationList firstPerm = Fretboard.getPermutation( variations, 0 );
+//		System.out.println( "First permutation=" + firstPerm);
+//		LocationList penuPerm = Fretboard.getPermutation( variations, permutations - 2 );
+//		System.out.println( "Penu permutation=" + penuPerm);
+		LocationList lastPerm = Fretboard.getPermutation( variations, permutations - 1 );
+		System.out.println( "Last permutation=" + lastPerm);
+
+		System.out.println( "Last permutation string=" + Fretboard.getPermutationString(variations, permutations - 1));		
+		// assertEquals("NoteList variation n - 1", "99/100 (344/455)", Fretboard.getPermutationString(variations, permutations - 1));
+	}
+	
 	/**
 	 * Note that the variation LocationList of any List position can be null or empty.
 	 * This often happen when one Fretboard with high and low notes gets moved to a smaller fretboard.
 	 * Thus you may see a List<LocationList> String that looks like "[]", "[, ]", or "[, , ]".  
 	 */
 	@Test
-	public void testVariationStrings() {
+	public void testPermutationStrings() {
 		NoteList noteSet = new NoteList(Note.GuitarG, // 4 locations,
 				Note.plus(Note.GuitarG, Interval.fourth), Note.plus(Note.GuitarG, Interval.fifth));
 
 		List<LocationList> variations = standard.getEnharmonicVariations(noteSet);
 		System.out.println("NoteList=" + noteSet + ", variations=" + variations);
-		int digits = variations.size(); // 4 * 4 * 4
+		int digits = variations.size(); // 4 * 5 * 5
 		assertEquals("NoteList variation digits", 3, digits);
-		long numVariations = Fretboard.getPermutationCount(variations);
-		// System.out.println( "NoteList=" + noteSet + ", variation count=" +
-		// numVariations );
-		assertEquals("NoteList variation count", 64, numVariations);
+		long permutations = Fretboard.getPermutationCount(variations);
+		System.out.println( "NoteList=" + noteSet + ", variation count=" + permutations );
+		assertEquals("NoteList variation count", 100, permutations);
 
 		// System.out.println( "NoteListTest null perm string=\"" +
 		// Fretboard.getPermutationString( null, 0 ) + "\".");
 		assertEquals("NoteList variation null", "ø", Fretboard.getPermutationString(null, 0));
-		assertEquals("NoteList variation 0", "0/64 (000/444)", Fretboard.getPermutationString(variations, 0));
+		assertEquals("NoteList variation 0", "0/100 (000/455)", Fretboard.getPermutationString(variations, 0));
 		// Need to reverse order here. Right now this is coming out backwards.
-		assertEquals("NoteList variation 1", "1/64 (001/444)", Fretboard.getPermutationString(variations, 1));
-		assertEquals("NoteList variation 15", "15/64 (033/444)", Fretboard.getPermutationString(variations, 15));
+		assertEquals("NoteList variation 1", "1/100 (001/455)", Fretboard.getPermutationString(variations, 1));
+		assertEquals("NoteList variation 15", "15/100 (030/455)", Fretboard.getPermutationString(variations, 15));
 		// assertEquals("NoteList variation 16", "16/64 (100)",
 		// Fretboard.getPermutationString( variations, 16 ));
 		// assertEquals("NoteList variation 62", "62/64 (332)",
 		// Fretboard.getPermutationString( variations, 62 ));
-		assertEquals("NoteList variation 63", "63/64 (333/444)", Fretboard.getPermutationString(variations, 63));
+		assertEquals("NoteList variation 63", "63/100 (223/455)", Fretboard.getPermutationString(variations, 63));
+		assertEquals("NoteList variation 99", "99/100 (344/455)", Fretboard.getPermutationString(variations, permutations - 1));
+
+		// Get first and last permutations
+		// LocationList firstPerm = Fretboard.getPermutation( variations, 0 );
+		// System.out.println( "First permutation=" + firstPerm);
+		// LocationList penuPerm = Fretboard.getPermutation( variations, permutations - 2 );
+		// System.out.println( "Penu permutation=" + penuPerm);
+		// LocationList lastPerm = Fretboard.getPermutation( variations, permutations - 1 );
+		// System.out.println( "Last permutation=" + lastPerm);
 	}
 
 	@Test
-	public void testVariationStringParsing() {
+	public void testPermutationStringParsing() {
 		assertNull("Empty", Fretboard.getPermutationValues(null));
 
 		assertNull("One", Fretboard.getPermutationValues("1"));
 
 		assertNull("Delims", Fretboard.getPermutationValues("/ ()"));
 
-		int[] two = Fretboard.getPermutationValues("8/100");
+		long[] two = Fretboard.getPermutationValues("8/100");
 		assertTrue("Two", 3 == two.length);
-		assertArrayEquals("Two values", new int[] { 8, 100, 0 }, two);
+		assertArrayEquals("Two values", new long[] { 8, 100, 0 }, two);
 
-		int[] legit = Fretboard.getPermutationValues("15/64 (123/456)");
+		long[] legit = Fretboard.getPermutationValues("15/64 (123/456)");
 		assertTrue("Legit", 9 == legit.length);
-		assertArrayEquals("Legit values", new int[] { 15, 64, 3, 1, 4, 2, 5, 3, 6 }, legit);
+		assertArrayEquals("Legit values", new long[] { 15, 64, 3, 1, 4, 2, 5, 3, 6 }, legit);
 
-		int[] doubleit = Fretboard.getPermutationValues("15/64 (123/456) 10/20 (345/678)");
+		long[] doubleit = Fretboard.getPermutationValues("15/64 (123/456) 10/20 (345/678)");
 		assertNull("Doubleit", doubleit);
 	}
 
 	@Test
-	public void testVariationsWithOctaves() {
+	public void testPermutationsWithOctaves() {
 		// Expected variations = 4 * x * 1 * 2 = 8
 		NoteList noteSet = new NoteList(Note.GuitarD // 4 locations,
 		);
@@ -277,426 +337,12 @@ public class FretboardTest {
 		numVariations = Fretboard.getPermutationCount(variationsWithOctaves);
 		System.out.println("NoteList=" + noteSet + ", variation count=" + numVariations);
 		System.out.println("NoteList=" + noteSet + ", variations=" + variationsWithOctaves);
-		assertEquals("NoteList octave variation count", 9, numVariations);
-
-	}
-
-	@Test
-	public void testtoStringLocationsHorizontal() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.orientation = Orientation.HORIZONTAL;
-		displayOpts.fretSpace = 1;
-		displayOpts.notPlayed = EnumSet.of(Display.NotPlayedLocation.HEAD);
-		displayOpts.notPlayedString = "x";
-
-		// int varCount = FilenameRegExFilter.getVariationCount( cRootsPos0Vars
-		// );
-		// System.out.println( "C Roots Variation Count=" + varCount );
-		// for( int i = 0; i < varCount; i ++ ) {
-		// LocationList variation = FilenameRegExFilter.getVariation(
-		// cRootsPos0Vars, i );
-		// System.out.println( "C Roots Variation " + i +
-		// " (span=" + variation.fretSpan() +
-		// ", unique strings=" + variation.uniqueStrings() +
-		// ", in bounds [1,5]=" + variation.getInBoundsCount( 0, 5 ) +
-		// "):" + nl +
-		// standard.toString( variation, 0, 18, displayOpts ) + Display.NL );
-		// }
-
-		String emptyHead = "x||";
-		String head = " ||";
-		String note = "o|";
-		String space = " |";
-		String none = emptyHead + space + space + space + space;
-
-		// System.out.println( "C roots 0 pos, righty, plain: " );
-		// System.out.println( "loc=" + cLocations );
-		// System.out.println( standard.toString( cLocations, 0, 5, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter horizontal plain righty", none + nl + head + note + space + space + space
-				+ nl + none + nl + none + nl + head + space + space + note + space + nl + none,
-				standard.toString(cLocations, 0, 5, displayOpts));
-
-		displayOpts.infoType = Display.InfoType.NAME;
-		displayOpts.hand = Hand.LEFT;
-		head = "|| ";
-		emptyHead = "||x";
-		note = "|C ";
-		space = "|  ";
-		none = space + space + space + space + emptyHead;
-
-		// System.out.println( "C roots 0 pos, lefty, named: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ));
-		assertEquals("FilenameRegExFilter horizontal plain lefty", none + nl + space + space + space + note + head + nl
-				+ none + nl + none + nl + space + note + space + space + head + nl + none,
-				standard.toString(cLocations, 0, 5, displayOpts));
-	}
-
-	@Test
-	public void testtoStringNotesHorizontal() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.orientation = Orientation.HORIZONTAL;
-		displayOpts.fretSpace = 1;
-
-		String played = " ||";
-		String notPlayed = "x||";
-		String note = "o|";
-		String space = " |";
-		String none = notPlayed + space + space + space + space;
-
-		// System.out.println( "C roots 0 pos, righty, plain: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter horizontal plain righty", none + nl + played + note + space + space + space
-				+ nl + none + nl + none + nl + played + space + space + note + space + nl + none,
-				standard.toString(cLocations, 0, 5, displayOpts));
-
-		displayOpts.infoType = Display.InfoType.NAME;
-		displayOpts.hand = Hand.LEFT;
-		played = "|| ";
-		notPlayed = "||x";
-		note = "|C ";
-		space = "|  ";
-		none = space + space + space + space + notPlayed;
-
-		// System.out.println( "C roots 0 pos, lefty, named: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ));
-		assertEquals("FilenameRegExFilter horizontal plain righty", none + nl + space + space + space + note + played
-				+ nl + none + nl + none + nl + space + note + space + space + played + nl + none,
-				standard.toString(cLocations, 0, 5, displayOpts));
-	}
-
-	@Test
-	public void testtoStringHorizontalCompact() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.nutString = "|";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "-";
-		displayOpts.fretSpace = 1;
-
-		String played = " |";
-		String notPlayed = "x|";
-		String note = "o";
-		String space = "-";
-		String none = notPlayed + space + space + space + space;
-
-		// System.out.println( "C roots 0 pos, righty, plain, compact: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter horizontal plain righty", none + nl + played + note + space + space + space
-				+ nl + none + nl + none + nl + played + space + space + note + space + nl + none,
-				standard.toString(cLocations, 0, 5, displayOpts));
-
-		displayOpts.infoType = Display.InfoType.NAME;
-		displayOpts.hand = Hand.LEFT;
-		displayOpts.openStringDisplay = false;
-
-		played = "| ";
-		notPlayed = "|x";
-		note = "C-";
-		space = "--";
-		none = space + space + space + space + notPlayed;
-
-		// System.out.println( "C roots 0 pos, lefty, named, compact: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ));
-		assertEquals("FilenameRegExFilter horizontal named lefty", none + nl + space + space + space + note + played
-				+ nl + none + nl + none + nl + space + note + space + space + played + nl + none,
-				standard.toString(cLocations, 0, 5, displayOpts));
-	}
-
-	@Test
-	public void testtoStringHorizontalCompactNotPlayed() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.nutString = "|";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "-";
-		displayOpts.fretSpace = 1;
-		displayOpts.notPlayed = EnumSet.of(Display.NotPlayedLocation.HEAD, Display.NotPlayedLocation.FIRST);
-		displayOpts.notPlayedString = "x";
-		displayOpts.openStringDisplay = true;
-
-		String head = "x|";
-		String space = "-";
-		String none = head + space + space + space + space;
-		String c2 = "-|o---";
-		String c4 = "-|--o-";
-
-		System.out.println("C roots 0 pos, righty, plain, compact not played: ");
-		System.out.println(standard.toString(cLocations, 0, 10, displayOpts));
-		assertEquals("FilenameRegExFilter horizontal plain righty compact not played", none + nl + c2 + nl + none + nl
-				+ none + nl + c4 + nl + none, standard.toString(cLocations, 0, 5, displayOpts));
-	}
-
-	@Test
-	public void testtoStringHorizontalCompactNotPlayedFret() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.nutString = "|";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "-";
-		displayOpts.fretSpace = 1;
-		displayOpts.notPlayed = EnumSet.of(Display.NotPlayedLocation.HEAD, Display.NotPlayedLocation.FIRST);
-		displayOpts.notPlayedString = "x";
-		displayOpts.openStringDisplay = false;
-
-		String head = "x|";
-		String space = "-";
-		String none = head + space + space + space + space;
-		String c2 = " |o---";
-		String c4 = " |--o-";
-
-		// System.out.println(
-		// "C roots 0 pos, righty, plain, compact not played: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter horizontal plain righty compact not played", none + nl + c2 + nl + none + nl
-				+ none + nl + c4 + nl + none, standard.toString(cLocations, 0, 5, displayOpts));
-	}
-
-	@Test
-	public void testtoStringHorizontalCompactNotPlayedFretNumbering() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.nutString = "|";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "-";
-		displayOpts.fretSpace = 1;
-		displayOpts.notPlayed = EnumSet.of(Display.NotPlayedLocation.HEAD, Display.NotPlayedLocation.FIRST);
-		displayOpts.notPlayedString = "x";
-		displayOpts.fretNumbering = EnumSet.of(Display.FretNumbering.FIRSTLEFT, Display.FretNumbering.FIRSTRIGHT);
-		displayOpts.openStringDisplay = false;
-		displayOpts.fretNumberingDisplayOpen = true;
-
-		String fretNumber = "0";
-		String head = "x|";
-		String space = "-";
-		String none = head + space + space + space + space;
-		String c2 = " |o---";
-		String c4 = " |--o-";
-
-		displayOpts.fretNumberingDisplayOpen = false;
-		// System.out.println(
-		// "C roots 0 pos, righty, plain, compact not played, fret #s, Open: "
-		// );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter horizontal plain righty compact not played, open fret #s ", none + nl + c2
-				+ nl + none + nl + none + nl + c4 + nl + none, standard.toString(cLocations, 0, 5, displayOpts));
-
-		displayOpts.fretNumberingDisplayOpen = true;
-		fretNumber = "0";
-		assertEquals("FilenameRegExFilter horizontal plain righty compact not played, no open fret #s ", fretNumber
-				+ nl + none + nl + c2 + nl + none + nl + none + nl + c4 + nl + none + nl + fretNumber,
-				standard.toString(cLocations, 0, 5, displayOpts));
-
-		fretNumber = "3";
-		none = "x----";
-		String c3 = "o----";
-		// System.out.println(
-		// "C roots 1 pos, righty, plain, compact not played, fret #s: " );
-		// System.out.println( standard.toString( cRootsPos0, 3, 8, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter horizontal plain righty compact not played, fret #s ", fretNumber + nl + none
-				+ nl + none + nl + none + nl + none + nl + c3 + nl + none + nl + fretNumber,
-				standard.toString(cLocations, 3, 8, displayOpts));
-	}
-
-	@Test
-	public void testtoStringVerticalCompact() {
-		NoteList cRootsPos0 = new NoteList(Note.plus(Note.GuitarB, Interval.half), Note.plus(Note.GuitarA,
-				Interval.wholehalf));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos0Vars = standard.getEnharmonicVariations(cRootsPos0);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos0Vars, 7);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.PLAIN;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.orientation = Orientation.VERTICAL;
-		displayOpts.nutString = "-";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "|";
-		displayOpts.fretSpace = 1;
-		displayOpts.openStringDisplay = true;
-		displayOpts.fretNumberingDisplayOpen = false;
-
-		String head = "x|xx|x";
-		String nut = "------";
-		String space = "||||||";
-		String c1 = "||||o|";
-		String c2 = "|o||||";
-
-		// System.out.println(
-		// "C roots 0 pos, vertical, righty, plain, compact: " );
-		// System.out.println( standard.toString( cRootsPos0, 0, 5, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter vertical plain righty open strings", head + nl + nut + nl + c1 + nl + space
-				+ nl + c2 + nl + space + nl, standard.toString(cLocations, 0, 5, displayOpts));
-
-		displayOpts.openStringDisplay = false;
-		head = "x xx x";
-		assertEquals("FilenameRegExFilter vertical plain righty no open strings", head + nl + nut + nl + c1 + nl
-				+ space + nl + c2 + nl + space + nl, standard.toString(cLocations, 0, 5, displayOpts));
-	}
-
-	@Test
-	public void testtoStringVerticalNotesCompact() {
-		NoteList cRootsPos1 = new NoteList(Note.plus(Note.GuitarA, Interval.wholehalf), Note.plus(Note.GuitarG,
-				Interval.fourth));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos1Vars = standard.getEnharmonicVariations(cRootsPos1);
-		// int varCount = FilenameRegExFilter.getVariationCount( cRootsPos1Vars
-		// );
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos1Vars, 6);
-		// for ( int i = 0; i < varCount; i++ )
-		// System.out.println( "C locations variation " + i + ": " +
-		// FilenameRegExFilter.getVariation( cRootsPos1Vars, i ) );
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.NAME;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.orientation = Orientation.VERTICAL;
-		displayOpts.nutString = "-";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "|";
-		displayOpts.fretSpace = 1;
-		displayOpts.openStringDisplay = true;
-		displayOpts.fretNumberingDisplayOpen = false;
-
-		String c2 = "3| C | | | | 3";
-		String c3 = " | | | C | |  ";
-		String space = " | | | | | |  ";
-
-		// System.out.println(
-		// "C roots pos 1, vertical, righty, named, compact: " );
-		// System.out.println( standard.toStringVert( cRootsPos1, 3, 7,
-		// displayOpts ) );
-		assertEquals("FilenameRegExFilter vertical plain righty", c2 + nl + space + nl + c3 + nl + space + nl,
-				standard.toString(cLocations, 3, 7, displayOpts));
-	}
-
-	@Test
-	public void testtoStringVerticalNotesCompactNotPlayed() {
-		NoteList cRootsPos1 = new NoteList(Note.plus(Note.GuitarA, Interval.wholehalf), Note.plus(Note.GuitarG,
-				Interval.fourth));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos1Vars = standard.getEnharmonicVariations(cRootsPos1);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos1Vars, 6);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.NAME;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.orientation = Orientation.VERTICAL;
-		displayOpts.nutString = "-";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "|";
-		displayOpts.fretSpace = 1;
-		displayOpts.notPlayed = EnumSet.of(Display.NotPlayedLocation.HEAD, Display.NotPlayedLocation.FIRST);
-		displayOpts.notPlayedString = "x";
-
-		String c2 = "3x C x | x x 3";
-		String space = " | | | | | |  ";
-		String c3 = " | | | C | |  ";
-
-		// System.out.println(
-		// "C roots pos 1, vertical, righty, named, compact, not played: " );
-		// System.out.println( standard.toString( cRootsPos1, 3, 6, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter vertical righty named compact not played", c2 + nl + space + nl + c3 + nl,
-				standard.toString(cLocations, 3, 6, displayOpts));
-
-	}
-
-	@Test
-	public void testtoStringVerticalNotesCompactNotPlayedFretNum() {
-		NoteList cRootsPos1 = new NoteList(Note.plus(Note.GuitarA, Interval.wholehalf), Note.plus(Note.GuitarG,
-				Interval.fourth));
-		// Pick a variation for display. Will change if order changes.
-		List<LocationList> cRootsPos1Vars = standard.getEnharmonicVariations(cRootsPos1);
-		LocationList cLocations = Fretboard.getPermutation(cRootsPos1Vars, 6);
-
-		Display displayOpts = new Display();
-		displayOpts.infoType = Display.InfoType.NAME;
-		displayOpts.hand = Hand.RIGHT;
-		displayOpts.orientation = Orientation.VERTICAL;
-		displayOpts.nutString = "-";
-		displayOpts.fretString = "";
-		displayOpts.stringString = "|";
-		displayOpts.fretSpace = 1;
-		displayOpts.notPlayed = EnumSet.of(Display.NotPlayedLocation.HEAD, Display.NotPlayedLocation.FIRST);
-		displayOpts.notPlayedString = "x";
-		displayOpts.fretNumbering = EnumSet.of(Display.FretNumbering.FIRSTLEFT, Display.FretNumbering.FIRSTRIGHT);
-		displayOpts.openStringDisplay = true;
-
-		String c2 = "3x C x | x x 3";
-		String space = " | | | | | |  ";
-		String c3 = " | | | C | |  ";
-
-		// System.out.println(
-		// "C roots pos 1, vertical, righty, named, compact, not played, fret num: "
-		// );
-		// System.out.println( standard.toString( cRootsPos1, 3, 6, displayOpts
-		// ) );
-		assertEquals("FilenameRegExFilter vertical righty named compact not played fretnum, open string displayed", c2
-				+ nl + space + nl + c3 + nl, standard.toString(cLocations, 3, 6, displayOpts));
-
-		displayOpts.openStringDisplay = false; // no effect since
-		assertEquals("FilenameRegExFilter vertical righty named compact not played fretnum, open string not displayed",
-				c2 + nl + space + nl + c3 + nl, standard.toString(cLocations, 3, 6, displayOpts));
+		assertEquals("NoteList octave variation count", 12, numVariations);
 	}
 
 	@Test
 	/** How to specify note/enharmonic variations that appear on a fretboard. */
-	public void testtoStringVariations() {
+	public void testToStrings() {
 		// Appears on 6/15, 5/10, 4/5, and 3/0.
 		NoteList g3 = new NoteList(Note.GuitarG);
 		List<LocationList> g3Variations = standard.getEnharmonicVariations(g3);
@@ -855,10 +501,10 @@ public class FretboardTest {
 
 		// This will test that the crazy order of ukelele strings is in order.
 		Fretboard expected= new Fretboard(
-				new GuitarString( Note.parse( "G4" )), 
-				new GuitarString( Note.parse( "C4" )), 
-				new GuitarString( Note.parse( "E4" )), 
-				new GuitarString( Note.parse( "A4" )));
+				new GuitarString( Note.parse( "G4" ), 12, 18), 
+				new GuitarString( Note.parse( "C4" ), 12, 18), 
+				new GuitarString( Note.parse( "E4" ), 12, 18), 
+				new GuitarString( Note.parse( "A4" ), 12, 18));
 		
 		for ( int i = 0; i < expected.getStringCount(); i++ ) {
 			GuitarString eString = expected.getString(i);

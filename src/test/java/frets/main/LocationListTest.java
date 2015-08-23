@@ -620,4 +620,17 @@ public class LocationListTest
     	   System.out.println( "Gadd9 variation " + i + ", notes=" + notes + ", formula=" + formula + ", variation=" + variation );
     	}
     }
+    
+    @Test
+    public void testSort() {
+		LocationList locations = LocationList.parseString( "3-5,0-10,4-13,0-8" );
+		LocationList expected = LocationList.parseString( "0-8,0-10,3-5,4-13" );
+
+		System.out.println( "LocationList unsorted=" + locations );
+		System.out.println( "LocationList expected=" + expected );
+		locations.sort();
+		System.out.println( "LocationList sorted=" + locations );
+		assertEquals("LocationList sort", expected, locations );        	
+    }
+
 }

@@ -1,5 +1,6 @@
 package frets.main;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -601,6 +602,15 @@ public class LocationList implements List<Location>, Comparable<LocationList> {
 		}
 
 		return delCount;
+	}
+
+	public synchronized void sort() {
+		if ( null != list && list.size() > 0 ) {
+			Location[] sortedList = new Location[ list.size() ];
+			sortedList = list.toArray(sortedList);
+			Arrays.sort(sortedList);
+			this.set( sortedList );
+		}
 	}
 	
 	protected List<Location> list = new LinkedList<Location>();
